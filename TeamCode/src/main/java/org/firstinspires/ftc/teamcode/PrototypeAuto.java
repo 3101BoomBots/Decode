@@ -11,45 +11,14 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 public class PrototypeAuto extends LinearOpMode {
     @Override
     public void runOpMode() throws InterruptedException {
-//        DcMotor fl = hardwareMap.get(DcMotor.class, "fl");
-////        fl.setTargetPosition(0);
-////        fl.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-//        DcMotor fr = hardwareMap.get(DcMotor.class, "fr");
-////        fr.setTargetPosition(0);
-////        fr.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-//        DcMotor br = hardwareMap.get(DcMotor.class, "br");
-////        br.setTargetPosition(0);
-////        br.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-//        DcMotor bl = hardwareMap.get(DcMotor.class, "bl");
-
-        DcMotor fl = hardwareMap.get(DcMotor.class, "fl");
-        fl.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        DcMotor fr = hardwareMap.get(DcMotor.class, "fr");
-        fr.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        DcMotor br = hardwareMap.get(DcMotor.class, "br");
-        br.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        DcMotor bl = hardwareMap.get(DcMotor.class, "bl");
-        bl.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        fl.setDirection(DcMotorSimple.Direction.REVERSE);
-        fr.setDirection(DcMotorSimple.Direction.REVERSE);
-        bl.setDirection(DcMotorSimple.Direction.REVERSE);
-        br.setDirection(DcMotorSimple.Direction.REVERSE);
-//        bl.setTargetPosition(0);
-//        bl.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        Hardware hw = Hardware.getInstance(this);
+        hw.init(hardwareMap);
+        hw.setToNoEncoder();
 
         waitForStart();
-        ElapsedTime time = new ElapsedTime();
         if (isStopRequested()) return;
-        fl.setPower(1);
-        fr.setPower(1);
-        bl.setPower(1);
-        br.setPower(1);
-        while (time.time() > 5) {
-            fl.setPower(0);
-            fr.setPower(0);
-            bl.setPower(0);
-            br.setPower(0);
+        while(opModeIsActive()) {
+            hw.setPower(1);
         }
-
     }
 }
