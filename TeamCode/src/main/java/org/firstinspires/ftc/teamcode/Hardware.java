@@ -23,6 +23,14 @@ public class Hardware {
         return self;
     }
 
+// intake - in/out/stop
+    //outtake - stop/out
+    //flap up down
+    // indexer - move
+    //trigger if > 0.1
+    //button gamepad 1
+    //true false bumpers
+
     public void init(HardwareMap hardwareMap) {
         frontLeft = hardwareMap.get(DcMotor.class, "fl");
         frontLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);

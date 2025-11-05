@@ -27,6 +27,10 @@ public class PrototypeTeleOp extends LinearOpMode {
             hw.backLeft.setPower((y - x + rx) / denominator);
             hw.frontRight.setPower((y - x - rx) / denominator);
             hw.backRight.setPower((y + x - rx) / denominator);
+            if( gamepad1.right_trigger > 0.1) {
+
+            }
+
         }
     }
 }
