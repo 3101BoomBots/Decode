@@ -27,10 +27,23 @@ public class PrototypeTeleOp extends LinearOpMode {
             hw.backLeft.setPower((y - x + rx) / denominator);
             hw.frontRight.setPower((y - x - rx) / denominator);
             hw.backRight.setPower((y + x - rx) / denominator);
-            if( gamepad1.right_trigger > 0.1) {
+            //move Flap up for dpad up:
+            if (gamepad1.dpad_up = true) {
 
             }
+            //move Flap down for dpad down:
+            if (gamepad1.dpad_down = true) {
 
+            }
+            //Toggle move Indexer
+            if (gamepad1.dpad_left = true) {
+
+
+            }
+            //Toggle Stop Indexer
+            if (gamepad1.dpad_right = true) {
+
+            }
         }
     }
 }
