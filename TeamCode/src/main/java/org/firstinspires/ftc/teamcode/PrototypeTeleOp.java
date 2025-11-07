@@ -7,10 +7,15 @@ import com.qualcomm.robotcore.hardware.DcMotorSimple;
 
 @TeleOp(name="prototype")
 public class PrototypeTeleOp extends LinearOpMode {
+
+
     @Override
     public void runOpMode() throws InterruptedException {
         Hardware hw = Hardware.getInstance(this);
+        int timesRotated = 0;
+        int intakeMode = 0;
         hw.init(hardwareMap);
+
         waitForStart();
         if (isStopRequested()) return;
         while (opModeIsActive()) {
@@ -27,10 +32,55 @@ public class PrototypeTeleOp extends LinearOpMode {
             hw.backLeft.setPower((y - x + rx) / denominator);
             hw.frontRight.setPower((y - x - rx) / denominator);
             hw.backRight.setPower((y + x - rx) / denominator);
-            if( gamepad1.right_trigger > 0.1) {
-
+            if(gamepad2.dpad_up) {
+                //flap up
+                hw.nathanMikhailServo.setPosition(hw.OPEN_POSITION_FLAP);
+            }
+            if (gamepad2.dpad_down) {
+                // flap down
+                hw.nathanMikhailServo.setPosition(hw.CLOSED_POSITION_FLAP);
             }
 
+            // start at 0, rotate once, add one
+            // timesRotated = 1, rotate another time, add one
+            // timesRotated = 2, try to rotate another - wouldn't work, stuck to go back one
+            // timesRotated = 1
+            // starts at 0, rotate back once, timesRotated = -1
+
+            if (gamepad2.dpad_right) {
+                if (timesRotated != 2) {
+                    hw.indexerMotor.setTargetPosition(hw.indexerMotor.getTargetPosition() + (int) (0.333 * hw.INDEXER_RESOLUTION));
+                    timesRotated = timesRotated + 1;
+                }
+            }
+            if (gamepad2.dpad_left) {
+                if (timesRotated != 0) {
+                    hw.indexerMotor.setTargetPosition(hw.indexerMotor.getTargetPosition() - (int) (0.333 * hw.INDEXER_RESOLUTION));
+                    timesRotated = timesRotated - 1;
+                }
+            }
+
+            // intake/ outtake
+            // intake left trigger
+            if(gamepad2.left_bumper) {
+                if(intakeMode == 2) {
+                    intakeMode = 0;
+                }
+                intakeMode = intakeMode + 1;
+            }
+
+            if(intakeMode == 0) {
+                hw.intakeMotor.setPower(0);
+            } else if (intakeMode == 1) {
+                hw.intakeMotor.setPower(-1);
+            } else {
+                hw.intakeMotor.setPower(1);
+            }
+            // outtake right trigger
+            if (gamepad2.right_trigger > 0.1) {
+                hw.outtakeMotorLeft.setPower(1);
+                hw.outtakeMotorRight.setPower(1);
+            }
         }
     }
 }

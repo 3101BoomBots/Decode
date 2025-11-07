@@ -4,14 +4,23 @@ import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
+import com.qualcomm.robotcore.hardware.Servo;
 
 public class Hardware {
     private static Hardware self;
+    public final int OPEN_POSITION_FLAP = 54;
+    public final int CLOSED_POSITION_FLAP = 20;
+    public final int INDEXER_RESOLUTION = 2786;
     private OpMode opMode;
     public DcMotor frontLeft;
     public DcMotor frontRight;
     public DcMotor backLeft;
     public DcMotor backRight;
+    public DcMotor indexerMotor;
+    public DcMotor outtakeMotorLeft;
+    public DcMotor outtakeMotorRight;
+    public DcMotor intakeMotor;
+    public Servo nathanMikhailServo;
 
     private Hardware(OpMode opMode) {
         self = this;
@@ -32,6 +41,7 @@ public class Hardware {
     //true false bumpers
 
     public void init(HardwareMap hardwareMap) {
+
         frontLeft = hardwareMap.get(DcMotor.class, "fl");
         frontLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         frontLeft.setDirection(DcMotorSimple.Direction.REVERSE);
@@ -50,6 +60,24 @@ public class Hardware {
         frontRight.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         backLeft.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         backRight.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+
+        nathanMikhailServo = hardwareMap.get(Servo.class, "flapServo");
+        nathanMikhailServo.setPosition(CLOSED_POSITION_FLAP);
+
+        indexerMotor = hardwareMap.get(DcMotor.class, "indexerMotor");
+        indexerMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        indexerMotor.setTargetPosition(0);
+        indexerMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+
+        intakeMotor = hardwareMap.get(DcMotor.class, "intakeMotor");
+        intakeMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+
+        outtakeMotorRight = hardwareMap.get(DcMotor.class, "outtakeMotorRight");
+        outtakeMotorRight.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        outtakeMotorLeft.setDirection(DcMotorSimple.Direction.REVERSE);
+
+        outtakeMotorLeft = hardwareMap.get(DcMotor.class, "outtakeMotorLeft");
+        outtakeMotorLeft.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
     }
 
     public void setToRunToPosition() {
