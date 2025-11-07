@@ -32,6 +32,7 @@ public class PrototypeTeleOp extends LinearOpMode {
             hw.backLeft.setPower((y - x + rx) / denominator);
             hw.frontRight.setPower((y - x - rx) / denominator);
             hw.backRight.setPower((y + x - rx) / denominator);
+
             if(gamepad2.dpad_up) {
                 //flap up
                 hw.nathanMikhailServo.setPosition(hw.OPEN_POSITION_FLAP);
@@ -40,7 +41,6 @@ public class PrototypeTeleOp extends LinearOpMode {
                 // flap down
                 hw.nathanMikhailServo.setPosition(hw.CLOSED_POSITION_FLAP);
             }
-
             // start at 0, rotate once, add one
             // timesRotated = 1, rotate another time, add one
             // timesRotated = 2, try to rotate another - wouldn't work, stuck to go back one
