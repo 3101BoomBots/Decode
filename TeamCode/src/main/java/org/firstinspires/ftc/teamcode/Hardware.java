@@ -10,7 +10,7 @@ public class Hardware {
     private static Hardware self;
     public final int OPEN_POSITION_FLAP = 54;
     public final int CLOSED_POSITION_FLAP = 20;
-    public final int INDEXER_RESOLUTION = 2786;
+    public final int INDEXER_RESOLUTION = 538;
     private OpMode opMode;
     public DcMotor frontLeft;
     public DcMotor frontRight;
@@ -32,7 +32,7 @@ public class Hardware {
         return self;
     }
 
-// intake - in/out/stop
+    // intake - in/out/stop
     //outtake - stop/out
     //flap up down
     // indexer - move
@@ -67,6 +67,7 @@ public class Hardware {
         indexerMotor = hardwareMap.get(DcMotor.class, "indexerMotor");
         indexerMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         indexerMotor.setTargetPosition(0);
+        indexerMotor.setPower(0.8);
         indexerMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
 
         intakeMotor = hardwareMap.get(DcMotor.class, "intakeMotor");

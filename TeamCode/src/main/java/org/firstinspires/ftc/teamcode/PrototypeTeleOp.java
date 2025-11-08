@@ -8,12 +8,11 @@ import com.qualcomm.robotcore.hardware.DcMotorSimple;
 @TeleOp(name="prototype")
 public class PrototypeTeleOp extends LinearOpMode {
 
-
     @Override
     public void runOpMode() throws InterruptedException {
         Hardware hw = Hardware.getInstance(this);
+        final double PERCENT_OF_OUTTAKE_VELOCITY = 0.7;
         int timesRotated = 0;
-        int intakeMode = 0;
         hw.init(hardwareMap);
 
         waitForStart();
@@ -61,25 +60,19 @@ public class PrototypeTeleOp extends LinearOpMode {
             }
 
             // intake/ outtake
-            // intake left trigger
-            if(gamepad2.left_bumper) {
-                if(intakeMode == 2) {
-                    intakeMode = 0;
-                }
-                intakeMode = intakeMode + 1;
-            }
-
-            if(intakeMode == 0) {
-                hw.intakeMotor.setPower(0);
-            } else if (intakeMode == 1) {
+            if(gamepad2.a) {
                 hw.intakeMotor.setPower(-1);
-            } else {
+            }
+            if(gamepad2.b) {
                 hw.intakeMotor.setPower(1);
+            }
+            if(gamepad2.x){
+                hw.intakeMotor.setPower(0);
             }
             // outtake right trigger
             if (gamepad2.right_trigger > 0.1) {
-                hw.outtakeMotorLeft.setPower(1);
-                hw.outtakeMotorRight.setPower(1);
+                hw.outtakeMotorLeft.setPower(PERCENT_OF_OUTTAKE_VELOCITY);
+                hw.outtakeMotorRight.setPower(PERCENT_OF_OUTTAKE_VELOCITY);
             }
         }
     }

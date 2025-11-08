@@ -18,7 +18,7 @@ public class PrototypeAuto extends LinearOpMode {
         waitForStart();
         if (isStopRequested()) return;
         while(opModeIsActive()) {
-            hw.setPower(1);
+            hw.setPower(0.2);
         }
     }
 }
