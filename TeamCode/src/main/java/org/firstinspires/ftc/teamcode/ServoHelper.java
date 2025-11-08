@@ -11,8 +11,10 @@ public class ServoHelper extends LinearOpMode {
         hw.init(hardwareMap);
         waitForStart();
         while(opModeIsActive()) {
-            if(gamepad1.dpad_up) hw.nathanMikhailServo.setPosition(hw.nathanMikhailServo.getPosition() + 2);
-            if(gamepad1.dpad_down) hw.nathanMikhailServo.setPosition(hw.nathanMikhailServo.getPosition() - 2);
+            if(gamepad1.a) hw.nathanMikhailServo.setPosition(3);
+//            if(gamepad1.a) hw.nathanMikhailServo.setPosition(hw.nathanMikhailServo.getPosition() + 1);
+//            if(gamepad1.b) hw.nathanMikhailServo.setPosition(hw.nathanMikhailServo.getPosition() - 1);
+            if(gamepad1.b) hw.nathanMikhailServo.setPosition(1);
             telemetry.addData("current pos", hw.nathanMikhailServo.getPosition());
             telemetry.update();
         }

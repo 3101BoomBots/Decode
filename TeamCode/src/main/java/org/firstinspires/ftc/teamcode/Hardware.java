@@ -62,7 +62,7 @@ public class Hardware {
         backRight.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
 
         nathanMikhailServo = hardwareMap.get(Servo.class, "flapServo");
-        nathanMikhailServo.setPosition(CLOSED_POSITION_FLAP);
+//        nathanMikhailServo.setPosition(CLOSED_POSITION_FLAP);
 
         indexerMotor = hardwareMap.get(DcMotor.class, "indexerMotor");
         indexerMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
@@ -74,11 +74,13 @@ public class Hardware {
         intakeMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
 
         outtakeMotorRight = hardwareMap.get(DcMotor.class, "outtakeMotorRight");
+        outtakeMotorRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         outtakeMotorRight.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        outtakeMotorLeft.setDirection(DcMotorSimple.Direction.REVERSE);
 
         outtakeMotorLeft = hardwareMap.get(DcMotor.class, "outtakeMotorLeft");
+        outtakeMotorLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         outtakeMotorLeft.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        outtakeMotorLeft.setDirection(DcMotorSimple.Direction.REVERSE);
     }
 
     public void setToRunToPosition() {
