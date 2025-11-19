@@ -2,6 +2,7 @@ package org.firstinspires.ftc.teamcode;
 
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
@@ -12,14 +13,14 @@ public class Hardware {
     public final int CLOSED_POSITION_FLAP = 20;
     public final int INDEXER_RESOLUTION = 538;
     private OpMode opMode;
-    public DcMotor frontLeft;
-    public DcMotor frontRight;
-    public DcMotor backLeft;
-    public DcMotor backRight;
-    public DcMotor indexerMotor;
-    public DcMotor outtakeMotorLeft;
-    public DcMotor outtakeMotorRight;
-    public DcMotor intakeMotor;
+    public DcMotorEx frontLeft;
+    public DcMotorEx frontRight;
+    public DcMotorEx backLeft;
+    public DcMotorEx backRight;
+    public DcMotorEx indexerMotor;
+    public DcMotorEx outtakeMotorLeft;
+    public DcMotorEx outtakeMotorRight;
+    public DcMotorEx intakeMotor;
     public Servo nathanMikhailServo;
 
     private Hardware(OpMode opMode) {
@@ -44,7 +45,7 @@ public class Hardware {
 
         frontLeft = hardwareMap.get(DcMotor.class, "fl");
         frontLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        frontLeft.setDirection(DcMotorSimple.Direction.REVERSE);
+        frontLeft.setDirection(DcMotor.Direction.REVERSE);
 
         frontRight = hardwareMap.get(DcMotor.class, "fr");
         frontRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);

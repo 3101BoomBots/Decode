@@ -71,8 +71,8 @@ public class PrototypeTeleOp extends LinearOpMode {
             }
             // outtake right trigger
             if (gamepad2.right_trigger > 0.1) {
-                hw.outtakeMotorLeft.setPower(PERCENT_OF_OUTTAKE_VELOCITY);
-                hw.outtakeMotorRight.setPower(PERCENT_OF_OUTTAKE_VELOCITY);
+                hw.outtakeMotorLeft.setVelocity(PERCENT_OF_OUTTAKE_VELOCITY);
+                hw.outtakeMotorRight.setVelocity(PERCENT_OF_OUTTAKE_VELOCITY);
             }
         }
     }
