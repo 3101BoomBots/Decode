@@ -4,6 +4,10 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
+import com.qualcomm.robotcore.hardware.configuration.typecontainers.MotorConfigurationType;
+
+import java.util.HashMap;
+import java.util.Map;
 
 @TeleOp(name="prototype")
 public class PrototypeTeleOp extends LinearOpMode {
@@ -11,9 +15,16 @@ public class PrototypeTeleOp extends LinearOpMode {
     @Override
     public void runOpMode() throws InterruptedException {
         Hardware hw = Hardware.getInstance(this);
-        final double PERCENT_OF_OUTTAKE_VELOCITY = 0.7;
+        final double MAX_VELOCITY_OUTTAKE = 0.5;
+        final double MIN_VELOCITY_OUTTAKE = 0.4;
+        boolean dpadRightDown = false;
+        boolean dpadLeftDown = false;
+        int position = 0;
+//        int[] positions = {0};
+
         int timesRotated = 0;
         hw.init(hardwareMap);
+//        telemetry.setAutoClear(false);
 
         waitForStart();
         if (isStopRequested()) return;
@@ -32,31 +43,15 @@ public class PrototypeTeleOp extends LinearOpMode {
             hw.frontRight.setPower((y - x - rx) / denominator);
             hw.backRight.setPower((y + x - rx) / denominator);
 
-            if(gamepad2.dpad_up) {
-                //flap up
-                hw.nathanMikhailServo.setPosition(hw.OPEN_POSITION_FLAP);
-            }
-            if (gamepad2.dpad_down) {
-                // flap down
-                hw.nathanMikhailServo.setPosition(hw.CLOSED_POSITION_FLAP);
-            }
             // start at 0, rotate once, add one
             // timesRotated = 1, rotate another time, add one
-            // timesRotated = 2, try to rotate another - wouldn't work, stuck to go back one
-            // timesRotated = 1
-            // starts at 0, rotate back once, timesRotated = -1
-
+            // timesRotated = 2,
+            // starts at 0, rotate back once, timesRotated = 2
             if (gamepad2.dpad_right) {
-                if (timesRotated != 2) {
-                    hw.indexerMotor.setTargetPosition(hw.indexerMotor.getTargetPosition() + (int) (0.333 * hw.INDEXER_RESOLUTION));
-                    timesRotated = timesRotated + 1;
-                }
+                hw.indexerMotor.setTargetPosition((int)(hw.indexerMotor.getTargetPosition() + (0.333 * hw.INDEXER_RESOLUTION)));
             }
             if (gamepad2.dpad_left) {
-                if (timesRotated != 0) {
-                    hw.indexerMotor.setTargetPosition(hw.indexerMotor.getTargetPosition() - (int) (0.333 * hw.INDEXER_RESOLUTION));
-                    timesRotated = timesRotated - 1;
-                }
+                hw.indexerMotor.setTargetPosition((int)(hw.indexerMotor.getTargetPosition() - (0.333 * hw.INDEXER_RESOLUTION)));
             }
 
             // intake/ outtake
@@ -71,9 +66,21 @@ public class PrototypeTeleOp extends LinearOpMode {
             }
             // outtake right trigger
             if (gamepad2.right_trigger > 0.1) {
-                hw.outtakeMotorLeft.setPower(PERCENT_OF_OUTTAKE_VELOCITY);
-                hw.outtakeMotorRight.setPower(PERCENT_OF_OUTTAKE_VELOCITY);
+//                double velocity = MIN_VELOCITY_OUTTAKE + (MAX_VELOCITY_OUTTAKE - MIN_VELOCITY_OUTTAKE) * gamepad1.right_trigger;
+                double velocity = MAX_VELOCITY_OUTTAKE;
+                hw.outtakeMotorLeft.setVelocity(velocity);
+                hw.outtakeMotorRight.setVelocity(velocity);
+//            } else {
+//                hw.outtakeMotorLeft.setPower(0);
+//                hw.outtakeMotorRight.setPower(0);
+            } if (gamepad2.left_trigger > 0.1 ) {
+                hw.outtakeMotorRight.setVelocity(0);
+                hw.outtakeMotorLeft.setVelocity(0);
             }
+            telemetry.addData("downleft", dpadLeftDown);
+            telemetry.addData("downright", dpadRightDown);
+            telemetry.addData("pos", hw.indexerMotor.getCurrentPosition());
+            telemetry.update();
         }
     }
 }

@@ -1,26 +1,25 @@
 package org.firstinspires.ftc.teamcode;
 
+import com.qualcomm.hardware.lynx.LynxDcMotorController;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
 
 public class Hardware {
     private static Hardware self;
-    public final int OPEN_POSITION_FLAP = 54;
-    public final int CLOSED_POSITION_FLAP = 20;
-    public final int INDEXER_RESOLUTION = 538;
+    public final double INDEXER_RESOLUTION = 2786.2;
     private OpMode opMode;
-    public DcMotor frontLeft;
-    public DcMotor frontRight;
-    public DcMotor backLeft;
-    public DcMotor backRight;
-    public DcMotor indexerMotor;
-    public DcMotor outtakeMotorLeft;
-    public DcMotor outtakeMotorRight;
-    public DcMotor intakeMotor;
-    public Servo nathanMikhailServo;
+    public DcMotorEx frontLeft;
+    public DcMotorEx frontRight;
+    public DcMotorEx backLeft;
+    public DcMotorEx backRight;
+    public DcMotorEx indexerMotor;
+    public DcMotorEx outtakeMotorLeft;
+    public DcMotorEx outtakeMotorRight;
+    public DcMotorEx intakeMotor;
 
     private Hardware(OpMode opMode) {
         self = this;
@@ -41,18 +40,17 @@ public class Hardware {
     //true false bumpers
 
     public void init(HardwareMap hardwareMap) {
-
-        frontLeft = hardwareMap.get(DcMotor.class, "fl");
+        frontLeft = hardwareMap.get(DcMotorEx.class, "fl");
         frontLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         frontLeft.setDirection(DcMotorSimple.Direction.REVERSE);
 
-        frontRight = hardwareMap.get(DcMotor.class, "fr");
+        frontRight = hardwareMap.get(DcMotorEx.class, "fr");
         frontRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
-        backRight = hardwareMap.get(DcMotor.class, "br");
+        backRight = hardwareMap.get(DcMotorEx.class, "br");
         backRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
-        backLeft = hardwareMap.get(DcMotor.class, "bl");
+        backLeft = hardwareMap.get(DcMotorEx.class, "bl");
         backLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         backLeft.setDirection(DcMotorSimple.Direction.REVERSE);
 
@@ -61,23 +59,20 @@ public class Hardware {
         backLeft.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         backRight.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
 
-        nathanMikhailServo = hardwareMap.get(Servo.class, "flapServo");
-//        nathanMikhailServo.setPosition(CLOSED_POSITION_FLAP);
-
-        indexerMotor = hardwareMap.get(DcMotor.class, "indexerMotor");
+        indexerMotor = hardwareMap.get(DcMotorEx.class, "indexerMotor");
         indexerMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         indexerMotor.setTargetPosition(0);
-        indexerMotor.setPower(0.8);
+        indexerMotor.setPower(0.3);
         indexerMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
 
-        intakeMotor = hardwareMap.get(DcMotor.class, "intakeMotor");
+        intakeMotor = hardwareMap.get(DcMotorEx.class, "intakeMotor");
         intakeMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
 
-        outtakeMotorRight = hardwareMap.get(DcMotor.class, "outtakeMotorRight");
+        outtakeMotorRight = hardwareMap.get(DcMotorEx.class, "outtakeMotorRight");
         outtakeMotorRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         outtakeMotorRight.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
 
-        outtakeMotorLeft = hardwareMap.get(DcMotor.class, "outtakeMotorLeft");
+        outtakeMotorLeft = hardwareMap.get(DcMotorEx.class, "outtakeMotorLeft");
         outtakeMotorLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         outtakeMotorLeft.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         outtakeMotorLeft.setDirection(DcMotorSimple.Direction.REVERSE);
