@@ -4,8 +4,8 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 
-@TeleOp(name="servo helper", group = "")
-public class ServoHelper extends LinearOpMode {
+@TeleOp(name="indexer helper", group = "")
+public class IndexerPositionHelper extends LinearOpMode {
     @Override
     public void runOpMode() throws InterruptedException {
         Hardware hw = Hardware.getInstance(this);
