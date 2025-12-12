@@ -41,17 +41,17 @@ public class Hardware {
     public void init(HardwareMap hardwareMap) {
         frontLeft = hardwareMap.get(DcMotorEx.class, "fl");
         frontLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        frontLeft.setDirection(DcMotorSimple.Direction.REVERSE);
 
         frontRight = hardwareMap.get(DcMotorEx.class, "fr");
         frontRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        frontRight.setDirection(DcMotorSimple.Direction.REVERSE);
 
         backRight = hardwareMap.get(DcMotorEx.class, "br");
         backRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        backRight.setDirection(DcMotorSimple.Direction.REVERSE);
 
         backLeft = hardwareMap.get(DcMotorEx.class, "bl");
         backLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        backLeft.setDirection(DcMotorSimple.Direction.REVERSE);
 
         frontLeft.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         frontRight.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
@@ -61,7 +61,7 @@ public class Hardware {
         indexerMotor = hardwareMap.get(DcMotorEx.class, "indexerMotor");
         indexerMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         indexerMotor.setTargetPosition(0);
-        indexerMotor.setPower(0.3);
+        indexerMotor.setPower(0.8);
         indexerMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
 
         intakeMotor = hardwareMap.get(DcMotorEx.class, "intakeMotor");
@@ -70,11 +70,11 @@ public class Hardware {
         outtakeMotorRight = hardwareMap.get(DcMotorEx.class, "outtakeMotorRight");
         outtakeMotorRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         outtakeMotorRight.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        outtakeMotorRight.setDirection(DcMotorSimple.Direction.REVERSE);
 
         outtakeMotorLeft = hardwareMap.get(DcMotorEx.class, "outtakeMotorLeft");
         outtakeMotorLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         outtakeMotorLeft.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        outtakeMotorLeft.setDirection(DcMotorSimple.Direction.REVERSE);
     }
 
     public void setToRunToPosition() {

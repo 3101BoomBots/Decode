@@ -15,7 +15,7 @@ public class PrototypeTeleOp extends LinearOpMode {
     @Override
     public void runOpMode() throws InterruptedException {
         Hardware hw = Hardware.getInstance(this);
-        final double MAX_VELOCITY_OUTTAKE = 0.5;
+        final double MAX_VELOCITY_OUTTAKE = (double)3000/1;
         final double MIN_VELOCITY_OUTTAKE = 0.4;
         boolean dpadRightDown = false;
         boolean dpadLeftDown = false;
@@ -31,7 +31,7 @@ public class PrototypeTeleOp extends LinearOpMode {
         while (opModeIsActive()) {
             double y = -gamepad1.left_stick_y; // Remember, Y stick value is reversed
             double x = gamepad1.left_stick_x * 1.1; // Counteract imperfect strafing
-            double rx = gamepad1.right_stick_x;
+            double rx = -gamepad1.right_stick_x;
 
             // Denominator is the largest motor power (absolute value) or 1
             // This ensures all the powers maintain the same ratio,
@@ -67,9 +67,12 @@ public class PrototypeTeleOp extends LinearOpMode {
             // outtake right trigger
             if (gamepad2.right_trigger > 0.1) {
 //                double velocity = MIN_VELOCITY_OUTTAKE + (MAX_VELOCITY_OUTTAKE - MIN_VELOCITY_OUTTAKE) * gamepad1.right_trigger;
-                double velocity = MAX_VELOCITY_OUTTAKE;
-                hw.outtakeMotorLeft.setVelocity(velocity);
-                hw.outtakeMotorRight.setVelocity(velocity);
+//                double velocity = MAX_VELOCITY_OUTTAKE;
+//                hw.outtakeMotorLeft.setVelocity(velocity);
+//                hw.outtakeMotorRight.setVelocity(velocity);
+                hw.outtakeMotorLeft.setPower(1);
+                hw.outtakeMotorRight.setPower(1);
+
 //            } else {
 //                hw.outtakeMotorLeft.setPower(0);
 //                hw.outtakeMotorRight.setPower(0);
@@ -79,6 +82,8 @@ public class PrototypeTeleOp extends LinearOpMode {
             }
             telemetry.addData("downleft", dpadLeftDown);
             telemetry.addData("downright", dpadRightDown);
+            telemetry.addData("velocity right", hw.outtakeMotorRight.getVelocity());
+            telemetry.addData("velocity left", hw.outtakeMotorLeft.getVelocity());
             telemetry.addData("pos", hw.indexerMotor.getCurrentPosition());
             telemetry.update();
         }
