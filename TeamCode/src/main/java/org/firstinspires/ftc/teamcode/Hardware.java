@@ -9,7 +9,7 @@ import com.qualcomm.robotcore.hardware.Servo;
 
 public class Hardware {
     private static Hardware self;
-    public final double INDEXER_RESOLUTION = 2786.2;
+    public final static double INDEXER_RESOLUTION = 2786.2;
     private OpMode opMode;
     public DcMotorEx frontLeft;
     public DcMotorEx frontRight;
