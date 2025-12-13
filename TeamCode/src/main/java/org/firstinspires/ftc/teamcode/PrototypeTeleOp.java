@@ -73,17 +73,17 @@ public class PrototypeTeleOp extends LinearOpMode {
                 }
             }
             else if(isStepByStep) {
-                if (gamepad2.dpad_right) {
+                if (gamepad2.dpadRightWasPressed()) {
                     if(position != 2) position++;
                     else position = 0;
-                    hw.indexerMotor.setTargetPosition(positions[position]);
+                    hw.indexerMotor.setTargetPosition((int)(hw.indexerMotor.getTargetPosition() + (0.333 * Hardware.INDEXER_RESOLUTION)));
                     isIndexerActive = true;
 //                    hw.indexerMotor.setPower(1);
                 }
-                if (gamepad2.dpad_left) {
+                if (gamepad2.dpadLeftWasPressed()) {
                     if (position != 0) position--;
                     else position = 2;
-                    hw.indexerMotor.setTargetPosition(positions[position]);
+                    hw.indexerMotor.setTargetPosition((int)(hw.indexerMotor.getTargetPosition() - (0.333 * Hardware.INDEXER_RESOLUTION)));
                     isIndexerActive = true;
 //                    hw.indexerMotor.setPower(-1);
                 }
