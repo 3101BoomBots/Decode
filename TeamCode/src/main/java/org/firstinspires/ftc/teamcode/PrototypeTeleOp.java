@@ -3,19 +3,14 @@ package org.firstinspires.ftc.teamcode;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
-import com.qualcomm.robotcore.hardware.DcMotorSimple;
-import com.qualcomm.robotcore.hardware.configuration.typecontainers.MotorConfigurationType;
 
-import java.util.ArrayList;
+
 import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
+
 
 @TeleOp(name="prototype")
 public class PrototypeTeleOp extends LinearOpMode {
-    int[] positions = {0, (int)(0.333 * Hardware.INDEXER_RESOLUTION), (int)(0.666 * Hardware.INDEXER_RESOLUTION)};
     int position;
 
     @Override
@@ -25,13 +20,15 @@ public class PrototypeTeleOp extends LinearOpMode {
 //        final double MIN_VELOCITY_OUTTAKE = 0.4;
         boolean isStepByStep = false;
         boolean isIndexerActive = false;
-        boolean dpadRightDown = false;
-        boolean dpadLeftDown = false;
+//        boolean dpadRightDown = false;
+//        boolean dpadLeftDown = false;
         int lastCurrentPosition = 0;
-//        telemetry.setAutoClear(true);
+//        telemetry.setAutoClear(false);
 
-        int timesRotated = 0;
+//        int timesRotated = 0;
         hw.init(hardwareMap);
+        hw.setPower(0);
+//        hw.setToNoEncoder();
 
         waitForStart();
         if (isStopRequested()) return;
@@ -51,23 +48,29 @@ public class PrototypeTeleOp extends LinearOpMode {
             hw.backRight.setPower((y + x - rx) / denominator);
 
             if(!hw.indexerMotor.isBusy()) isIndexerActive = false;
-            // start at 0, rotate once, add one
-            // timesRotated = 1, rotate another time, add one
-            // timesRotated = 2,
-            // starts at 0, rotate back once, timesRotated = 2
+
+            //reset
+            if(gamepad2.dpad_up) {
+                hw.indexerMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+                hw.indexerMotor.setPower(0.8);
+                hw.indexerMotor.setTargetPosition(0);
+                hw.indexerMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+            }
             if (!isStepByStep) {
                 if (gamepad2.dpad_right) {
-                    hw.indexerMotor.setTargetPosition((int)(hw.indexerMotor.getTargetPosition() + (0.333 * Hardware.INDEXER_RESOLUTION)));
+                    hw.indexerMotor.setTargetPosition(0);
+                    hw.indexerMotor.setTargetPosition((int)(hw.indexerMotor.getTargetPosition() + (10 * Hardware.INDEXER_RESOLUTION)));
                     isIndexerActive = true;
 //                    hw.indexerMotor.setPower(1);
                 }
                 if (gamepad2.dpad_left) {
-                    hw.indexerMotor.setTargetPosition((int)(hw.indexerMotor.getTargetPosition() - (0.333 * Hardware.INDEXER_RESOLUTION)));
+                    hw.indexerMotor.setTargetPosition(0);
+                    hw.indexerMotor.setTargetPosition((int)(hw.indexerMotor.getTargetPosition() - (10 * Hardware.INDEXER_RESOLUTION)));
                     isIndexerActive = true;
 //                    hw.indexerMotor.setPower(-1);
                 }
                 if (gamepad2.dpad_down) {
-                    hw.indexerMotor.setPower(0);
+//                    hw.indexerMotor.setPower(0);
                     hw.indexerMotor.setTargetPosition(hw.indexerMotor.getCurrentPosition());
                     isIndexerActive = false;
                 }
@@ -80,7 +83,7 @@ public class PrototypeTeleOp extends LinearOpMode {
                     isIndexerActive = true;
 //                    hw.indexerMotor.setPower(1);
                 }
-                if (gamepad2.dpadLeftWasPressed()) {
+                if (gamepad2.dpadLeftWasPressed()) { // down
                     if (position != 0) position--;
                     else position = 2;
                     hw.indexerMotor.setTargetPosition((int)(hw.indexerMotor.getTargetPosition() - (0.333 * Hardware.INDEXER_RESOLUTION)));
@@ -88,7 +91,7 @@ public class PrototypeTeleOp extends LinearOpMode {
 //                    hw.indexerMotor.setPower(-1);
                 }
                 if (gamepad2.dpad_down) {
-                    hw.indexerMotor.setPower(0);
+                    hw.indexerMotor.setTargetPosition(hw.indexerMotor.getCurrentPosition());
                     isIndexerActive = false;
                 }
             }
@@ -106,40 +109,46 @@ public class PrototypeTeleOp extends LinearOpMode {
             // outtake right trigger
             if (gamepad2.right_trigger > 0.1) {
 //                double velocity = MIN_VELOCITY_OUTTAKE + (MAX_VELOCITY_OUTTAKE - MIN_VELOCITY_OUTTAKE) * gamepad1.right_trigger;
-                double velocity = 2500;
-                hw.outtakeMotorLeft.setVelocity(velocity);
-                hw.outtakeMotorRight.setVelocity(velocity);
-                int closesPos = navigateToClosesPosition(hw.indexerMotor.getCurrentPosition(), (int)hw.INDEXER_RESOLUTION);
+                hw.outtake(880);
+                hw.indexerMotor.setTargetPosition(closestPosition(hw.indexerMotor.getCurrentPosition(), (int)Hardware.INDEXER_RESOLUTION));
+                isStepByStep = true;
+            } if (gamepad2.right_bumper) {  // long
+                hw.outtake(1200);
+                int closesPos = closestPosition(hw.indexerMotor.getCurrentPosition(), (int)Hardware.INDEXER_RESOLUTION);
                 telemetry.addData("closestPos", closesPos);
                 hw.indexerMotor.setTargetPosition(closesPos);
-//                hw.outtakeMotorLeft.setPower(0.4);
-//                hw.outtakeMotorRight.setPower(0.4);
                 isStepByStep = true;
             } if (gamepad2.left_trigger > 0.1 ) {
                 hw.outtakeMotorRight.setVelocity(0);
                 hw.outtakeMotorLeft.setVelocity(0);
                 isStepByStep = false;
-            } if (Math.abs(hw.indexerMotor.getCurrentPosition() - lastCurrentPosition) < 20 &&
-                    hw.indexerMotor.getPower() != 0 && isIndexerActive) {
-                for(int i = 0; i <3; i++) {
-                    telemetry.addData("STUCK BALL", "NOW");
-                    telemetry.addData("power", hw.indexerMotor.getPower());
-                }
-                telemetry.update();
-                hw.indexerMotor.setTargetPosition(hw.indexerMotor.getCurrentPosition() - 30);
+            } if (Math.abs(hw.indexerMotor.getCurrentPosition() - lastCurrentPosition) < 10 &&
+                    hw.indexerMotor.getPower() != 0 && isIndexerActive && hw.indexerMotor.isBusy() &&
+            hw.indexerMotor.isOverCurrent()) {
+//                    telemetry.addData("STUCK BALL", "");
+//                    telemetry.addData("power", hw.indexerMotor.getPower());
+//                    telemetry.addData("isbusy", hw.indexerMotor.isBusy());
+//                    telemetry.addData("isovercurrent", hw.indexerMotor.isOverCurrent());
+//                    telemetry.addData("current", hw.indexerMotor.getCurrent(CurrentUnit.AMPS));
+//                    telemetry.update();
+
+                hw.indexerMotor.setTargetPosition(hw.indexerMotor.getCurrentPosition() - 100);
             }
 
             lastCurrentPosition = hw.indexerMotor.getCurrentPosition();
-            telemetry.addData("downleft", dpadLeftDown);
-            telemetry.addData("downright", dpadRightDown);
+//            telemetry.addData("downleft", dpadLeftDown);
+//            telemetry.addData("downright", dpadRightDown);
             telemetry.addData("velocity right", hw.outtakeMotorRight.getVelocity());
             telemetry.addData("velocity left", hw.outtakeMotorLeft.getVelocity());
             telemetry.addData("pos", hw.indexerMotor.getCurrentPosition());
+            telemetry.addData("target", hw.indexerMotor.getTargetPosition());
+            telemetry.addData("indexerPower", hw.indexerMotor.getPower());
             telemetry.update();
         }
     }
 //briggs
-    private int navigateToClosesPosition(int currPos, int indexerResolution) {
+    private int closestPosition(int currPos, int indexerResolution) {
+        int[] positions = generatePositions(currPos);
         Integer[] differences = new Integer[]{indexerResolution - (currPos - positions[0]),
                 indexerResolution - (currPos - positions[1]), indexerResolution - (currPos - positions[2])};
         List<Integer> differenceToPos = Arrays.asList(differences);
@@ -147,5 +156,9 @@ public class PrototypeTeleOp extends LinearOpMode {
         int indexOfMin = differenceToPos.indexOf(minDiff);
         position = indexOfMin;
         return positions[indexOfMin];
+    }
+
+    int[] generatePositions(int currPos) {
+        return new int[]{0 + currPos, (int) (0.333 * Hardware.INDEXER_RESOLUTION) + currPos, (int) (0.666 * Hardware.INDEXER_RESOLUTION) + currPos};
     }
 }

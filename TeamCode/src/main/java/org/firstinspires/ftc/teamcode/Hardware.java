@@ -1,5 +1,6 @@
 package org.firstinspires.ftc.teamcode;
 
+import com.qualcomm.hardware.gobilda.GoBildaPinpointDriver;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
@@ -7,10 +8,15 @@ import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
 
+import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
+import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
+import org.firstinspires.ftc.robotcore.external.navigation.Pose2D;
+
 public class Hardware {
     private static Hardware self;
     public final static double INDEXER_RESOLUTION = 2786.2;
     private OpMode opMode;
+    public GoBildaPinpointDriver pinpoint;
     public DcMotorEx frontLeft;
     public DcMotorEx frontRight;
     public DcMotorEx backLeft;
@@ -40,18 +46,22 @@ public class Hardware {
 
     public void init(HardwareMap hardwareMap) {
         frontLeft = hardwareMap.get(DcMotorEx.class, "fl");
+        frontLeft.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         frontLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
         frontRight = hardwareMap.get(DcMotorEx.class, "fr");
         frontRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        frontRight.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         frontRight.setDirection(DcMotorSimple.Direction.REVERSE);
 
         backRight = hardwareMap.get(DcMotorEx.class, "br");
+        backRight.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         backRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         backRight.setDirection(DcMotorSimple.Direction.REVERSE);
 
         backLeft = hardwareMap.get(DcMotorEx.class, "bl");
         backLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        backLeft.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
 
         frontLeft.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         frontRight.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
@@ -61,7 +71,7 @@ public class Hardware {
         indexerMotor = hardwareMap.get(DcMotorEx.class, "indexerMotor");
         indexerMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         indexerMotor.setTargetPosition(0);
-        indexerMotor.setPower(0.8);
+        indexerMotor.setPower(1);
         indexerMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
 
         intakeMotor = hardwareMap.get(DcMotorEx.class, "intakeMotor");
@@ -75,10 +85,21 @@ public class Hardware {
         outtakeMotorLeft = hardwareMap.get(DcMotorEx.class, "outtakeMotorLeft");
         outtakeMotorLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         outtakeMotorLeft.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+
+        pinpoint = hardwareMap.get(GoBildaPinpointDriver.class, "pinpoint");
+        pinpoint.resetPosAndIMU();
+        pinpoint.setEncoderDirections(GoBildaPinpointDriver.EncoderDirection.FORWARD, GoBildaPinpointDriver.EncoderDirection.FORWARD);
+        pinpoint.setOffsets(0, 0, DistanceUnit.INCH);
+        pinpoint.setEncoderResolution(GoBildaPinpointDriver.GoBildaOdometryPods.goBILDA_SWINGARM_POD);
+        pinpoint.setPosition(new Pose2D(DistanceUnit.INCH, 0, 0, AngleUnit.DEGREES, 0));
     }
 
     public void setToRunToPosition() {
         setPower(0);
+        frontLeft.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        frontRight.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        backLeft.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        backRight.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         setTarget(0);
         frontLeft.setMode(DcMotor.RunMode.RUN_TO_POSITION);
         frontRight.setMode(DcMotor.RunMode.RUN_TO_POSITION);
@@ -112,5 +133,32 @@ public class Hardware {
         frontRight.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         backLeft.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         backRight.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+    }
+
+    public void strafeTicks(int ticks) { // pos = right
+        frontLeft.setTargetPosition(ticks);
+        frontRight.setTargetPosition(-ticks);
+        backRight.setTargetPosition(ticks);
+        backLeft.setTargetPosition(-ticks);
+    }
+
+
+    public void strafePower(double power) { // pos = right
+        frontLeft.setPower(power);
+        frontRight.setPower(-power);
+        backRight.setPower(power);
+        backLeft.setPower(-power);
+    }
+
+    public void indexerDown(int turns) {
+        indexerMotor.setTargetPosition(indexerMotor.getTargetPosition() - (int)(turns*0.333*INDEXER_RESOLUTION));
+    }
+
+    public void indexerUp(int turns) {
+        indexerMotor.setTargetPosition(indexerMotor.getTargetPosition() + (int)(turns*0.333*INDEXER_RESOLUTION));
+    }
+    public void outtake(int velocity) {
+        outtakeMotorLeft.setVelocity(velocity);
+        outtakeMotorRight.setVelocity(velocity);
     }
 }
