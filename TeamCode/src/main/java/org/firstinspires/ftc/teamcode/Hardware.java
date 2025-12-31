@@ -1,7 +1,9 @@
 package org.firstinspires.ftc.teamcode;
 
 import com.qualcomm.hardware.gobilda.GoBildaPinpointDriver;
+import com.qualcomm.hardware.rev.RevColorSensorV3;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
+import com.qualcomm.robotcore.hardware.ColorSensor;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
@@ -25,6 +27,9 @@ public class Hardware {
     public DcMotorEx outtakeMotorLeft;
     public DcMotorEx outtakeMotorRight;
     public DcMotorEx intakeMotor;
+    public RevColorSensorV3 colorSensor1;
+    public RevColorSensorV3 colorSensor2;
+
 
     private Hardware(OpMode opMode) {
         self = this;
@@ -157,6 +162,7 @@ public class Hardware {
     public void indexerUp(int turns) {
         indexerMotor.setTargetPosition(indexerMotor.getTargetPosition() + (int)(turns*0.333*INDEXER_RESOLUTION));
     }
+
     public void outtake(int velocity) {
         outtakeMotorLeft.setVelocity(velocity);
         outtakeMotorRight.setVelocity(velocity);

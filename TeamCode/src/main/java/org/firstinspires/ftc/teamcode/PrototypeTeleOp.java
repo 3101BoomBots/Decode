@@ -113,7 +113,7 @@ public class PrototypeTeleOp extends LinearOpMode {
                 hw.indexerMotor.setTargetPosition(closestPosition(hw.indexerMotor.getCurrentPosition(), (int)Hardware.INDEXER_RESOLUTION));
                 isStepByStep = true;
             } if (gamepad2.right_bumper) {  // long
-                hw.outtake(1200);
+                hw.outtake(1180);
                 int closesPos = closestPosition(hw.indexerMotor.getCurrentPosition(), (int)Hardware.INDEXER_RESOLUTION);
                 telemetry.addData("closestPos", closesPos);
                 hw.indexerMotor.setTargetPosition(closesPos);

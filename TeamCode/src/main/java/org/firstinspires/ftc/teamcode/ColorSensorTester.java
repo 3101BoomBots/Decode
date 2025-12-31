@@ -1,6 +1,8 @@
 package org.firstinspires.ftc.teamcode;
 
 import android.graphics.Color;
+
+import com.qualcomm.hardware.rev.RevColorSensorV3;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DistanceSensor;
@@ -51,7 +53,7 @@ public class ColorSensorTester extends LinearOpMode {
         // Get a reference to our sensor object. It's recommended to use NormalizedColorSensor over
         // ColorSensor, because NormalizedColorSensor consistently gives values between 0 and 1, while
         // the values you get from ColorSensor are dependent on the specific sensor you're using.
-        colorSensor = hardwareMap.get(NormalizedColorSensor.class, "sensor_color");
+        colorSensor = hardwareMap.get(RevColorSensorV3.class, "color1");
 
         // If possible, turn the light on in the beginning (it might already be on anyway,
         // we just make sure it is if we can).
