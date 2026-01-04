@@ -105,7 +105,7 @@ public class PrototypeTeleOp extends LinearOpMode {
             if(gamepad2.x){
                 hw.intakeMotor.setPower(0);
             }
-            //htn = nathan
+
             // outtake right trigger
             if (gamepad2.right_trigger > 0.1) {
 //                double velocity = MIN_VELOCITY_OUTTAKE + (MAX_VELOCITY_OUTTAKE - MIN_VELOCITY_OUTTAKE) * gamepad1.right_trigger;
@@ -146,11 +146,13 @@ public class PrototypeTeleOp extends LinearOpMode {
             telemetry.update();
         }
     }
-//briggs
+
     private int closestPosition(int currPos, int indexerResolution) {
         int[] positions = generatePositions(currPos);
-        Integer[] differences = new Integer[]{indexerResolution - (currPos - positions[0]),
-                indexerResolution - (currPos - positions[1]), indexerResolution - (currPos - positions[2])};
+        Integer[] differences = new Integer[]{
+                indexerResolution - (currPos - positions[0]),
+                indexerResolution - (currPos - positions[1]),
+                indexerResolution - (currPos - positions[2])};
         List<Integer> differenceToPos = Arrays.asList(differences);
         int minDiff = Math.min(Math.min(differenceToPos.get(0), differenceToPos.get(1)), differenceToPos.get(2));
         int indexOfMin = differenceToPos.indexOf(minDiff);
