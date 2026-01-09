@@ -34,7 +34,7 @@ public class ColorSensorTeleOp extends LinearOpMode {
         telemetry.setAutoClear(false);
         telemetry.setMsTransmissionInterval(500);
 
-        // id 21 = gpp , 22 = pgp , 23 = ppg
+        // id 21 = gpp , 22 = pgp , 23 = ppg+
         // init
 //        color1.setGain();  // multiplying, so only makes sense for >1
 //        color2.setGain();
