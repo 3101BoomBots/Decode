@@ -8,6 +8,7 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
+import com.qualcomm.robotcore.hardware.PIDFCoefficients;
 import com.qualcomm.robotcore.hardware.Servo;
 
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
@@ -27,6 +28,8 @@ public class Hardware {
     public DcMotorEx outtakeMotorLeft;
     public DcMotorEx outtakeMotorRight;
     public DcMotorEx intakeMotor;
+
+    private PIDFCoefficients pidfCoefficients = new PIDFCoefficients(74, 0, 0, 13);
     public RevColorSensorV3 colorSensor1;
     public RevColorSensorV3 colorSensor2;
 
@@ -91,12 +94,38 @@ public class Hardware {
         outtakeMotorLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         outtakeMotorLeft.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
 
+        outtakeMotorRight.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, pidfCoefficients);
+        outtakeMotorLeft.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, pidfCoefficients);
+
         pinpoint = hardwareMap.get(GoBildaPinpointDriver.class, "pinpoint");
         pinpoint.resetPosAndIMU();
         pinpoint.setEncoderDirections(GoBildaPinpointDriver.EncoderDirection.FORWARD, GoBildaPinpointDriver.EncoderDirection.FORWARD);
         pinpoint.setOffsets(0, 0, DistanceUnit.INCH);
         pinpoint.setEncoderResolution(GoBildaPinpointDriver.GoBildaOdometryPods.goBILDA_SWINGARM_POD);
         pinpoint.setPosition(new Pose2D(DistanceUnit.INCH, 0, 0, AngleUnit.DEGREES, 0));
+    }
+
+    public void pedroInit(HardwareMap hardwareMap) {
+        indexerMotor = hardwareMap.get(DcMotorEx.class, "indexerMotor");
+        indexerMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        indexerMotor.setTargetPosition(0);
+        indexerMotor.setPower(1);
+        indexerMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+
+        intakeMotor = hardwareMap.get(DcMotorEx.class, "intakeMotor");
+        intakeMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+
+        outtakeMotorRight = hardwareMap.get(DcMotorEx.class, "outtakeMotorRight");
+        outtakeMotorRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        outtakeMotorRight.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        outtakeMotorRight.setDirection(DcMotorSimple.Direction.REVERSE);
+
+        outtakeMotorLeft = hardwareMap.get(DcMotorEx.class, "outtakeMotorLeft");
+        outtakeMotorLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        outtakeMotorLeft.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+
+        outtakeMotorRight.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, pidfCoefficients);
+        outtakeMotorLeft.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, pidfCoefficients);
     }
 
     public void setToRunToPosition() {

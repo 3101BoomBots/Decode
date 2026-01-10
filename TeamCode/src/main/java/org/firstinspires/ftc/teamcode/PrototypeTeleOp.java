@@ -20,9 +20,9 @@ public class PrototypeTeleOp extends LinearOpMode {
 //        final double MIN_VELOCITY_OUTTAKE = 0.4;
         boolean isStepByStep = false;
         boolean isIndexerActive = false;
-//        boolean dpadRightDown = false;
-//        boolean dpadLeftDown = false;
+        final double SLOW_POWER = 0.4;
         int lastCurrentPosition = 0;
+        boolean isSlow = false;
 //        telemetry.setAutoClear(false);
 
 //        int timesRotated = 0;
@@ -42,17 +42,34 @@ public class PrototypeTeleOp extends LinearOpMode {
             // but only if at least one is out of the range [-1, 1]
             double denominator = Math.max(Math.abs(y) + Math.abs(x) + Math.abs(rx), 1);
 
-            hw.frontLeft.setPower((y + x + rx) / denominator);
-            hw.backLeft.setPower((y - x + rx) / denominator);
-            hw.frontRight.setPower((y - x - rx) / denominator);
-            hw.backRight.setPower((y + x - rx) / denominator);
+            if(!isSlow) {
+                hw.frontLeft.setPower((y + x + rx) / denominator);
+                hw.backLeft.setPower((y - x + rx) / denominator);
+                hw.frontRight.setPower((y - x - rx) / denominator);
+                hw.backRight.setPower((y + x - rx) / denominator);
+            }
 
+            if (gamepad1.dpad_right) {
+                isSlow = true;
+                hw.frontLeft.setPower(SLOW_POWER);
+                hw.backLeft.setPower(SLOW_POWER);
+                hw.frontRight.setPower(-SLOW_POWER);
+                hw.backRight.setPower(-SLOW_POWER);
+            } else if (gamepad1.dpad_left) {
+                isSlow = true;
+                hw.frontLeft.setPower(-SLOW_POWER);
+                hw.backLeft.setPower(-SLOW_POWER);
+                hw.frontRight.setPower(SLOW_POWER);
+                hw.backRight.setPower(SLOW_POWER);
+            } else {
+                isSlow = false;
+            }
             if(!hw.indexerMotor.isBusy()) isIndexerActive = false;
 
             //reset
             if(gamepad2.dpad_up) {
                 hw.indexerMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-                hw.indexerMotor.setPower(0.8);
+                hw.indexerMotor.setPower(1);
                 hw.indexerMotor.setTargetPosition(0);
                 hw.indexerMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
             }

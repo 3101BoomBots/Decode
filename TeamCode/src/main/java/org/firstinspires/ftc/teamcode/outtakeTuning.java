@@ -1,3 +1,5 @@
+package org.firstinspires.ftc.teamcode;
+
 import com.bylazar.configurables.annotations.Configurable;
 import com.bylazar.telemetry.PanelsTelemetry;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
@@ -12,7 +14,7 @@ import com.qualcomm.robotcore.hardware.PIDFCoefficients;
 @TeleOp(name = "outtakeTuning")
 public class outtakeTuning extends LinearOpMode {
     // these should be editable on panels on the fly to tune PID
-    public static double p = 1;
+    public static double p = 74;
     public static double i = 0;
     public static double d = 0;
     public static double f = 0;
@@ -35,6 +37,8 @@ public class outtakeTuning extends LinearOpMode {
         outtakeMotorRight.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, pidfCoefficients);
         outtakeMotorLeft.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, pidfCoefficients);
 
+//        outtakeMotorLeft.setPower(1);
+//        outtakeMotorRight.setPower(1);
         panelsTelemetry.debug("Init was ran!");
         panelsTelemetry.update(telemetry);
 
@@ -52,8 +56,8 @@ public class outtakeTuning extends LinearOpMode {
 
         while(opModeIsActive()) {
             if(gamepad1.a) {
-                outtakeMotorLeft.setVelocity(800);
-                outtakeMotorRight.setVelocity(800);
+                outtakeMotorLeft.setVelocity(880);
+                outtakeMotorRight.setVelocity(880);
                 targetVelocity = 880;
             }
             if(gamepad1.b) {
@@ -71,6 +75,9 @@ public class outtakeTuning extends LinearOpMode {
 
             panelsTelemetry.addData("outtakeVelocityRight", velocityRight);
             panelsTelemetry.addData("outtakeVelocityLeft", velocityLeft);
+            panelsTelemetry.addData("left error", targetVelocity - velocityLeft);
+            panelsTelemetry.addData("right error", targetVelocity - velocityRight);
+            panelsTelemetry.addData("zero line", 0);
             panelsTelemetry.addData("targetVelocity", targetVelocity);
 
             pidfCoefficients = new PIDFCoefficients(p, i, d, f);
