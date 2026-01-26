@@ -1,6 +1,8 @@
 package org.firstinspires.ftc.teamcode;
 
+import com.bylazar.configurables.annotations.Configurable;
 import com.qualcomm.hardware.gobilda.GoBildaPinpointDriver;
+import com.qualcomm.hardware.limelightvision.Limelight3A;
 import com.qualcomm.hardware.rev.RevColorSensorV3;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.hardware.ColorSensor;
@@ -8,6 +10,7 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
+import com.qualcomm.robotcore.hardware.NormalizedColorSensor;
 import com.qualcomm.robotcore.hardware.PIDFCoefficients;
 import com.qualcomm.robotcore.hardware.Servo;
 
@@ -15,9 +18,10 @@ import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.Pose2D;
 
+@Configurable
 public class Hardware {
     private static Hardware self;
-    public final static double INDEXER_RESOLUTION = 2786.2;
+    public final static double INDEXER_RESOLUTION = 537.7;
     private OpMode opMode;
     public GoBildaPinpointDriver pinpoint;
     public DcMotorEx frontLeft;
@@ -28,10 +32,12 @@ public class Hardware {
     public DcMotorEx outtakeMotorLeft;
     public DcMotorEx outtakeMotorRight;
     public DcMotorEx intakeMotor;
+    public static int indexerVelocity = 1500;
+    public RevColorSensorV3 color1;
+    public RevColorSensorV3 color2;
+    public Limelight3A limelight;
 
-    private PIDFCoefficients pidfCoefficients = new PIDFCoefficients(74, 0, 0, 13);
-    public RevColorSensorV3 colorSensor1;
-    public RevColorSensorV3 colorSensor2;
+    private PIDFCoefficients pidfCoefficients = new PIDFCoefficients(80, 0, 0, 14.5);
 
 
     private Hardware(OpMode opMode) {
@@ -76,41 +82,37 @@ public class Hardware {
         backLeft.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         backRight.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
 
-        indexerMotor = hardwareMap.get(DcMotorEx.class, "indexerMotor");
+        pedroInit(hardwareMap);
+
+//        pinpoint = hardwareMap.get(GoBildaPinpointDriver.class, "pinpoint");
+//        pinpoint.resetPosAndIMU();
+//        pinpoint.setEncoderDirections(GoBildaPinpointDriver.EncoderDirection.FORWARD, GoBildaPinpointDriver.EncoderDirection.FORWARD);
+//        pinpoint.setOffsets(0, 0, DistanceUnit.INCH);
+//        pinpoint.setEncoderResolution(GoBildaPinpointDriver.GoBildaOdometryPods.goBILDA_SWINGARM_POD);
+//        pinpoint.setPosition(new Pose2D(DistanceUnit.INCH, 0, 0, AngleUnit.DEGREES, 0));
+    }
+
+    public void indexerRun() {
         indexerMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         indexerMotor.setTargetPosition(0);
         indexerMotor.setPower(1);
+        indexerMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         indexerMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+    }
 
-        intakeMotor = hardwareMap.get(DcMotorEx.class, "intakeMotor");
-        intakeMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-
-        outtakeMotorRight = hardwareMap.get(DcMotorEx.class, "outtakeMotorRight");
-        outtakeMotorRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        outtakeMotorRight.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        outtakeMotorRight.setDirection(DcMotorSimple.Direction.REVERSE);
-
-        outtakeMotorLeft = hardwareMap.get(DcMotorEx.class, "outtakeMotorLeft");
-        outtakeMotorLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        outtakeMotorLeft.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-
-        outtakeMotorRight.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, pidfCoefficients);
-        outtakeMotorLeft.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, pidfCoefficients);
-
-        pinpoint = hardwareMap.get(GoBildaPinpointDriver.class, "pinpoint");
-        pinpoint.resetPosAndIMU();
-        pinpoint.setEncoderDirections(GoBildaPinpointDriver.EncoderDirection.FORWARD, GoBildaPinpointDriver.EncoderDirection.FORWARD);
-        pinpoint.setOffsets(0, 0, DistanceUnit.INCH);
-        pinpoint.setEncoderResolution(GoBildaPinpointDriver.GoBildaOdometryPods.goBILDA_SWINGARM_POD);
-        pinpoint.setPosition(new Pose2D(DistanceUnit.INCH, 0, 0, AngleUnit.DEGREES, 0));
+    public void indexerVelocity() {
+        indexerMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        indexerMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
     }
 
     public void pedroInit(HardwareMap hardwareMap) {
         indexerMotor = hardwareMap.get(DcMotorEx.class, "indexerMotor");
         indexerMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         indexerMotor.setTargetPosition(0);
-        indexerMotor.setPower(1);
+//        indexerMotor.setPower(1);
+//        indexerMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         indexerMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        indexerVelocity();
 
         intakeMotor = hardwareMap.get(DcMotorEx.class, "intakeMotor");
         intakeMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
@@ -126,6 +128,10 @@ public class Hardware {
 
         outtakeMotorRight.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, pidfCoefficients);
         outtakeMotorLeft.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, pidfCoefficients);
+
+        color1 = hardwareMap.get(RevColorSensorV3.class, "color1");
+        color2 = hardwareMap.get(RevColorSensorV3.class, "color2");
+        limelight = hardwareMap.get(Limelight3A.class, "limelight");
     }
 
     public void setToRunToPosition() {
@@ -190,6 +196,18 @@ public class Hardware {
 
     public void indexerUp(int turns) {
         indexerMotor.setTargetPosition(indexerMotor.getTargetPosition() + (int)(turns*0.333*INDEXER_RESOLUTION));
+    }
+
+    public int velocityIndexerDown() {
+        int curr = indexerMotor.getCurrentPosition();
+        indexerMotor.setVelocity(-indexerVelocity);
+        return (int) (curr - 0.333 * INDEXER_RESOLUTION);
+    }
+
+    public int velocityIndexerUp() {
+        int curr = indexerMotor.getCurrentPosition();
+        indexerMotor.setVelocity(indexerVelocity);
+        return (int) (curr + 0.333 * INDEXER_RESOLUTION);
     }
 
     public void outtake(int velocity) {

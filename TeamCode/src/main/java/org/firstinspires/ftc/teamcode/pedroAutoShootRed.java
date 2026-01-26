@@ -36,12 +36,12 @@ public class pedroAutoShootRed extends OpMode {
                 .addPath(
                     new BezierLine(startPose, new Pose(76.82474226804123, 77.93814432989691))
                 )
-                .setLinearHeadingInterpolation(Math.toRadians(270), Math.toRadians(45))
+                .setLinearHeadingInterpolation(Math.toRadians(270), Math.toRadians(225))
                 .build();
         leave = follower.pathBuilder().addPath(
-                new BezierLine(new Pose(76.82474226804123, 77.93814432989691, 45),
-                        new Pose(81.4639175257732, 60.68041237113401, 45))
-        ).setLinearHeadingInterpolation(Math.toRadians(45), Math.toRadians(45)).build();
+                new BezierLine(new Pose(76.82474226804123, 77.93814432989691,  Math.toRadians(225)),
+                        new Pose(81.4639175257732, 60.68041237113401,  Math.toRadians(225))))
+        .setLinearHeadingInterpolation(Math.toRadians(225), Math.toRadians(225)).build();
         follower.setStartingPose(startPose);
         state = 0;
     }
