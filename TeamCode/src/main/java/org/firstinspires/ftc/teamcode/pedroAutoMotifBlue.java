@@ -15,18 +15,14 @@ import com.qualcomm.hardware.limelightvision.LLResultTypes;
 import com.qualcomm.hardware.limelightvision.Limelight3A;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
-import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.NormalizedColorSensor;
 
-import org.firstinspires.ftc.robotcore.external.navigation.Pose3D;
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 
-import java.util.Arrays;
 import java.util.List;
 
-
-@Autonomous(name = "pedroAutoMotifRed")
-public class pedroAutoMotifRed extends OpMode {
+@Autonomous(name = "pedroAutoMotifBlue")
+public class pedroAutoMotifBlue extends OpMode {
     PathChain score1, balls1, return1, leave;
     Follower follower;
     Timer pathTimer;
@@ -35,6 +31,7 @@ public class pedroAutoMotifRed extends OpMode {
     Hardware hw;
     Limelight3A limelight;
     int state = -1;
+    private enum BALL_STATUS {GREEN, PURPLE, NEITHER, CONFLICT}
     BALL_STATUS positionOne = BALL_STATUS.PURPLE;
     BALL_STATUS positionTwo = BALL_STATUS.PURPLE;
     BALL_STATUS positionThree = BALL_STATUS.GREEN;
@@ -47,8 +44,8 @@ public class pedroAutoMotifRed extends OpMode {
     BALL_ORDER ballOrder;
 
     public void initPaths(Follower follower) {
-        Pose startPose = new Pose(87.5463917525773, 7.257731958762889, Math.toRadians(270));
-        Pose shootingPosition = new Pose(82.72164948453607, 79.97938144329898, Math.toRadians(225));
+        Pose startPose = new Pose(56.37113402061855, 7.257731958762889, Math.toRadians(270));
+        Pose shootingPosition = new Pose(66.02061855670102, 78.30927835051546, Math.toRadians(315));
         follower.setStartingPose(startPose);
         score1 = follower.pathBuilder().addPath(
                         new BezierLine(
@@ -61,15 +58,15 @@ public class pedroAutoMotifRed extends OpMode {
         balls1 = follower.pathBuilder().addPath(
                         new BezierCurve(
                                 shootingPosition,
-                                new Pose(90.495, 83.258),
-                                new Pose(129.381, 83.938)
+                                new Pose(56.16494845360825, 85.67010309278352),
+                                new Pose(11.918, 84.124)
                         )
-                ).setConstantHeadingInterpolation(Math.toRadians(0))
+                ).setConstantHeadingInterpolation(Math.toRadians(180))
                 .build();
 
         return1 = follower.pathBuilder().addPath(
                         new BezierLine(
-                                new Pose(129.381, 83.938),
+                                new Pose(11.918, 84.124),
                                 shootingPosition
                         )
                 ).setLinearHeadingInterpolation(Math.toRadians(0), shootingPosition.getHeading())
@@ -78,7 +75,7 @@ public class pedroAutoMotifRed extends OpMode {
         leave = follower.pathBuilder().addPath(
                         new BezierLine(
                                 shootingPosition,
-                                new Pose(95.742, 71.866)
+                                new Pose(52.505, 70.010)
                         )
                 ).setConstantHeadingInterpolation(shootingPosition.getHeading())
                 .build();
@@ -134,13 +131,13 @@ public class pedroAutoMotifRed extends OpMode {
                     targetThree = BALL_STATUS.GREEN;
                 }
                 targetColors = new BALL_STATUS[] {targetOne, targetTwo, targetThree};
-                panels.addData("target 1", targetOne);
-                panels.addData("target 2", targetTwo);
-                panels.addData("target 3", targetThree);
-                panels.update(telemetry);
             } else {
                 useMotif = false;
             }
+            panels.addData("target 1", targetOne);
+            panels.addData("target 2", targetTwo);
+            panels.addData("target 3", targetThree);
+            panels.update(telemetry);
         }
     }
 
@@ -153,15 +150,16 @@ public class pedroAutoMotifRed extends OpMode {
     @Override
     public void loop() {
         follower.update();
+        if (!isSpinning && (Math.abs(pos - hw.indexerMotor.getCurrentPosition()) <= 20
+                || Math.abs(pos - hw.indexerMotor.getCurrentPosition()) >= 200)) {
+            hw.indexerMotor.setVelocity(0);
+        }
         switch (state) {
             case 0:
                 hw.intakeMotor.setPower(1);
                 follower.followPath(score1, true);
                 state = 1;
                 break;
-            case 98:  // debug case
-                hw.intakeMotor.setPower(1);
-                state = 1;
             case 1:
                 if(!follower.isBusy()) {
                     hw.outtake(860);
@@ -172,10 +170,8 @@ public class pedroAutoMotifRed extends OpMode {
             case 2:
                 if (pathTimer.getElapsedTimeSeconds() > 3) {
                     outtakeTimer.resetTimer();
-//                    int targetOnePos = searchBallColor(targetOne);
-                    if(targetOne.equals(BALL_STATUS.PURPLE)) shootFromPosition(2);
-                    else shootFromPosition(3);
-                    resetPosition(hw);
+                    int targetOnePos = searchBallColor(targetOne);
+                    if (targetOnePos != 0) shootFromPosition(targetOnePos);
                     pathTimer.resetTimer();
                     state = 3;
                 }
@@ -183,9 +179,8 @@ public class pedroAutoMotifRed extends OpMode {
             case 3:
                 if (pathTimer.getElapsedTimeSeconds() > 2) {
                     outtakeTimer.resetTimer();
-                    if(targetTwo.equals(BALL_STATUS.PURPLE)) shootFromPosition(2);
-                    else shootFromPosition(1);
-                    resetPosition(hw);
+                    int targetTwoPos = searchBallColor(targetTwo);
+                    if (targetTwoPos != 0) shootFromPosition(targetTwoPos);
                     pathTimer.resetTimer();
                     state = 4;
                 }
@@ -193,70 +188,57 @@ public class pedroAutoMotifRed extends OpMode {
             case 4:
                 if (pathTimer.getElapsedTimeSeconds() > 2) {
                     outtakeTimer.resetTimer();
-                    if(ballOrder.equals(BALL_ORDER.PGP)) shootFromPosition(3);
-                    else shootFromPosition(2);
-                    resetPosition(hw);
+                    int targetThreePos = searchBallColor(targetThree);
+                    if (targetThreePos != 0) shootFromPosition(targetThreePos);
                     pathTimer.resetTimer();
-                    state = 5;   // debug case
+                    state = 5;
                 }
                 break;
             case 5:
                 if (pathTimer.getElapsedTimeSeconds() > 3) {
-                    hw.indexerMotor.setVelocity(400);
-                    follower.followPath(balls1, 0.6, true);
-                    pathTimer.resetTimer();
-                    resetPosition(hw);
-                    state = 51;
-                }
-                break;
-            case 51:
-                if(pathTimer.getElapsedTimeSeconds() > 1) {
-                    hw.indexerMotor.setVelocity(0);
-                    state = 52;
-                }
-                break;
-            case 52:
-                if(pathTimer.getElapsedTimeSeconds() > 1.5) {
-                    hw.indexerMotor.setVelocity(400);
+                    hw.indexerMotor.setVelocity(1000);
+                    follower.followPath(balls1);
                     pathTimer.resetTimer();
                     state = 6;
                 }
                 break;
             case 6:
-                if (pathTimer.getElapsedTimeSeconds() > 0.5 && !follower.isBusy()) { // wait at end 1/2 second
+                if (pathTimer.getElapsedTimeSeconds() > 1 && !follower.isBusy()) {
                     follower.followPath(return1, true);
-//                    Timer ballResetTimer = new Timer();
-//                    getBallsInPosition(ballResetTimer);
+                    pathTimer.resetTimer();
+                    state = 61;
+                }
+                break;
+            case 61:
+                if(pathTimer.getElapsedTimeSeconds() > 1) {
+                    getBallsInPosition();
                     pathTimer.resetTimer();
                     state = 7;
                 }
                 break;
             case 7:
-                if (pathTimer.getElapsedTimeSeconds() > 3) {
+                if (!follower.isBusy() && pathTimer.getElapsedTimeSeconds() > 2) {
                     outtakeTimer.resetTimer();
-                    if(targetOne.equals(BALL_STATUS.PURPLE)) shootFromPosition(2);
-                    else shootFromPosition(3);
-                    resetPosition(hw);
+                    int targetOnePos = searchBallColor(targetOne);
+                    if (targetOnePos != 0) shootFromPosition(targetOnePos);
                     pathTimer.resetTimer();
                     state = 8;
                 }
                 break;
             case 8:
-                if (pathTimer.getElapsedTimeSeconds() > 2) {
+                if (pathTimer.getElapsedTimeSeconds() > 4) {
                     outtakeTimer.resetTimer();
-                    if(targetTwo.equals(BALL_STATUS.PURPLE)) shootFromPosition(2);
-                    else shootFromPosition(1);
-                    resetPosition(hw);
+                    int targetTwoPos = searchBallColor(targetTwo);
+                    if (targetTwoPos != 0) shootFromPosition(targetTwoPos);
                     pathTimer.resetTimer();
                     state = 9;
                 }
                 break;
-            case 9:
+            case 10:
                 if (pathTimer.getElapsedTimeSeconds() > 2) {
                     outtakeTimer.resetTimer();
-                    if(ballOrder.equals(BALL_ORDER.PGP)) shootFromPosition(1);
-                    else shootFromPosition(2);
-                    resetPosition(hw);
+                    int targetThreePos = searchBallColor(targetThree);
+                    if (targetThreePos != 0) shootFromPosition(targetThreePos);
                     pathTimer.resetTimer();
                     state = 99;
                 }
@@ -265,7 +247,7 @@ public class pedroAutoMotifRed extends OpMode {
                 follower.followPath(leave);
                 state = 100;
                 break;
-            }
+        }
 
 //        panels.addData("path state", state);
 //        panels.addData("path timer", pathTimer.getElapsedTimeSeconds());
@@ -279,78 +261,50 @@ public class pedroAutoMotifRed extends OpMode {
 //        panels.update(telemetry);
     }
 
-    private void resetPosition(Hardware hw) {
-        int closestPos = closestPosition(hw.indexerMotor.getCurrentPosition(), (int)Hardware.INDEXER_RESOLUTION);
-        panels.addData("curr and pos and closest", " curr" + hw.indexerMotor.getCurrentPosition() +
-                " " + pos + " " + closestPos);
-        panels.update(telemetry);
-        hw.indexerMotor.setTargetPosition(closestPos);
-        if(!hw.indexerMotor.getMode().equals(DcMotor.RunMode.RUN_TO_POSITION)) hw.indexerRun();
-        hw.indexerMotor.setPower(1);
-        while(hw.indexerMotor.isBusy()) {follower.update();}
-        hw.indexerMotor.setPower(0);
-        hw.indexerVelocity();
-    }
-
-    private int closestPosition(int currPos, int indexerResolution) {
-        int multiplier = indexerResolution / currPos;
-        int[] positions = generatePositions(multiplier);
-        Integer[] differences = new Integer[]{
-                Math.abs(currPos - positions[0]),
-                Math.abs(currPos - positions[1]),
-                Math.abs(currPos - positions[2])};
-        List<Integer> differenceToPos = Arrays.asList(differences);
-        int minDiff = Math.min(Math.min(differenceToPos.get(0), differenceToPos.get(1)), differenceToPos.get(2));
-        int indexOfMin = differenceToPos.indexOf(minDiff);
-        return positions[indexOfMin];
-    }
-
-    private int[] generatePositions(int multiplier) {
-        return new int[]{(int) (Hardware.INDEXER_RESOLUTION * multiplier),
-                (int) (0.333 * Hardware.INDEXER_RESOLUTION + multiplier * Hardware.INDEXER_RESOLUTION),
-                (int) (0.666 * Hardware.INDEXER_RESOLUTION + multiplier * Hardware.INDEXER_RESOLUTION)};
+    private int searchBallColor(BALL_STATUS color) {
+        if(positionThree.equals(color)) return 3;
+        if(positionTwo.equals(color)) return 2;
+        if(positionOne.equals(color)) return 1;
+        return 0;
     }
 
     private void shootFromPosition(int position) {
-        // gpp = 322
-        // ppg = 222
-        // pgp = 213
         // 3 : 1 down 1 up
         // 2 : 1 up 1 down 1 up
-        // 1 : 2 up 1 down
-        final double OUTTAKE_DELAY = 0.15;
+        // 1 : 2 up 1 down 1 up
         switch (position) {
             case 3:
-                while(outtakeTimer.getElapsedTimeSeconds() < OUTTAKE_DELAY) {follower.update();}
-                shootAndWait(3, () -> indexerToOuttake(1, true), 31);
+                shootAndWait(3, () -> indexerToOuttake(1), 31);
                 break;
             case 31:
-                while(outtakeTimer.getElapsedTimeSeconds() < OUTTAKE_DELAY) {follower.update();}
-                shootAndWait(31, () -> indexerToIntake(1), 99);
+                if(outtakeTimer.getElapsedTimeSeconds() > 1)
+                    shootAndWait(31, () -> indexerToIntake(1), 99);
                 break;
             case 2:
-                while(outtakeTimer.getElapsedTimeSeconds() < OUTTAKE_DELAY) {follower.update();}
                 shootAndWait(2, () -> indexerToIntake(1), 21);
                 break;
             case 21:
-                while(outtakeTimer.getElapsedTimeSeconds() < OUTTAKE_DELAY){follower.update();}
-                shootAndWait(21, () -> indexerToOuttake(1, false), 22);
+                if(outtakeTimer.getElapsedTimeSeconds() > 1)
+                    shootAndWait(21, () -> indexerToOuttake(1), 22);
                 break;
             case 22:
-                while(outtakeTimer.getElapsedTimeSeconds() < OUTTAKE_DELAY){follower.update();}
-                shootAndWait(22, () -> indexerToIntake(1), 99);
+                if(outtakeTimer.getElapsedTimeSeconds() > 1)
+                    shootAndWait(22, () -> indexerToIntake(1), 99);
                 break;
             case 1:
-                while(outtakeTimer.getElapsedTimeSeconds() < OUTTAKE_DELAY) {follower.update();}
                 shootAndWait(1, () -> indexerToIntake(1), 11);
                 break;
             case 11:
-                while(outtakeTimer.getElapsedTimeSeconds() < OUTTAKE_DELAY){follower.update();}
-                shootAndWait(11, () -> indexerToIntake(1), 12);
+                if(outtakeTimer.getElapsedTimeSeconds() > 1)
+                    shootAndWait(11, () -> indexerToIntake(1), 12);
                 break;
             case 12:
-                while(outtakeTimer.getElapsedTimeSeconds() < OUTTAKE_DELAY){follower.update();}
-                shootAndWait(12, () -> indexerToOuttake(1, false), 99);
+                if(outtakeTimer.getElapsedTimeSeconds() > 1)
+                    shootAndWait(12, () -> indexerToOuttake(1), 13);
+                break;
+            case 13:
+                if(outtakeTimer.getElapsedTimeSeconds() > 1)
+                    shootAndWait(13, () -> indexerToIntake(1), 99);
                 break;
             case 99:  // designated base case
                 hw.indexerMotor.setVelocity(0);
@@ -361,31 +315,35 @@ public class pedroAutoMotifRed extends OpMode {
     }
 
     private void shootAndWait(int initialCase, Runnable initialShot, int nextCase) {
-        panels.addData("RUN", initialCase);
-        panels.update(telemetry);
-        outtakeTimer.resetTimer();
-        initialShot.run();
-
-        while (!(Math.abs(pos - hw.indexerMotor.getCurrentPosition()) <= 20
-                || Math.abs(pos - hw.indexerMotor.getCurrentPosition()) >= Hardware.INDEXER_RESOLUTION)) {
-            follower.update();
-            panels.addData("pos", pos);
-            panels.addData("curr", hw.indexerMotor.getCurrentPosition());
+        if(!isSpinning) {
+            panels.addData("RUN", initialCase);
             panels.update(telemetry);
+            isSpinning = true;
+            outtakeTimer.resetTimer();
+            initialShot.run();
         }
-        panels.addData("run", "moving from " + initialCase + " to " + nextCase);
-        panels.addData("second", positionTwo);
-        panels.update(telemetry);
-
-        hw.indexerMotor.setVelocity(0);
-        outtakeTimer.resetTimer();
-        shootFromPosition(nextCase); // 3_1 is like 3.1, the next step for position 3
-
+        if (Math.abs(pos - hw.indexerMotor.getCurrentPosition()) <= 20
+                || Math.abs(pos - hw.indexerMotor.getCurrentPosition()) >= 200) {
+            hw.indexerMotor.setVelocity(0);
+            isSpinning = false;
+//            panels.addData("run", "moving on to " + nextCase + " from " + initialCase);
+////            panels.addData("case", initialCase);
+////            panels.addData("next case", nextCase);
+////            panels.addData("pos", pos);
+////            panels.addData("curr", hw.indexerMotor.getCurrentPosition());
+//            panels.addData("first", positionOne);
+//            panels.addData("second", positionTwo);
+//            panels.addData("third", positionThree);
+//            panels.update(telemetry);
+            shootFromPosition(nextCase); // 3_1 is like 3.1, the next step for position 3
+        } else {
+            shootFromPosition(initialCase);
+        }
     }
 
 
-    private void indexerToOuttake(int rotations, boolean extraHardFirstBall) {
-        pos = hw.velocityIndexerDown(extraHardFirstBall);
+    private void indexerToOuttake(int rotations) {
+        pos = hw.velocityIndexerDown();
         for(int i = 0; i < rotations; i++) {
             positionThree = positionOne;
             positionOne = positionTwo;
@@ -404,11 +362,10 @@ public class pedroAutoMotifRed extends OpMode {
         }
     }
 
-    private void getBallsInPosition(Timer timeoutTimer) {
-        while(!positionOne.equals(BALL_STATUS.GREEN) || timeoutTimer.getElapsedTimeSeconds() > 3) {
-            hw.indexerMotor.setVelocity(100);
+    private void getBallsInPosition() {
+        while(!positionOne.equals(BALL_STATUS.GREEN)) {
+            hw.indexerMotor.setVelocity(200);
             positionOne = getColorInPositionOne(hw.color1, hw.color2);
-            follower.update();
         }
         positionOne = BALL_STATUS.GREEN;
         positionTwo = BALL_STATUS.PURPLE;
@@ -435,7 +392,6 @@ public class pedroAutoMotifRed extends OpMode {
         }
         panels.addData("color2 color chosen", sensorTwoDecision);
         panels.addData("final color chosen", ball_color);
-        panels.update(telemetry);
 
         return ball_color;
     }
@@ -480,4 +436,5 @@ public class pedroAutoMotifRed extends OpMode {
             return BALL_STATUS.CONFLICT;
         }
     }
+
 }

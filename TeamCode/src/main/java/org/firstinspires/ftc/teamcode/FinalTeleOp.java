@@ -34,15 +34,9 @@ public class FinalTeleOp extends OpMode {
     private Hardware hw;
     int position;
     int pos = 0;
+    boolean isSpinning = false;
     boolean isStepByStep = false;
-    private final double greenLowerH = 81;
-    private final double greenLowerS = .27;
-    private final double greenUpperH = 168.0;
 
-    private final double purpleLowerH = 175.0;
-    private final double purpleLowerS = .28;
-    private final double purpleUpperH = 250.0;
-    private enum BALL_STATUS {GREEN, PURPLE, NEITHER, CONFLICT}
     BALL_STATUS positionOne = BALL_STATUS.PURPLE;
     BALL_STATUS positionTwo = BALL_STATUS.PURPLE;
     BALL_STATUS positionThree = BALL_STATUS.GREEN;
@@ -148,12 +142,12 @@ public class FinalTeleOp extends OpMode {
         // indexer =====
         if (!isStepByStep) {
             if (gamepad2.dpad_right) {
-                hw.indexerMotor.setVelocity(2500);
+                hw.indexerMotor.setVelocity(1000);
             }
             if (gamepad2.dpad_left) {
                 hw.indexerMotor.setVelocity(-2500);
             }
-            if (gamepad2.left_stick_button) {
+            if (gamepad2.dpadDownWasPressed()) {
                 hw.indexerMotor.setVelocity(0);
             }
         } else {
@@ -163,7 +157,7 @@ public class FinalTeleOp extends OpMode {
             if (gamepad2.dpadLeftWasPressed()) { // down
                 indexerToOuttake(1);
             }
-            if (gamepad2.left_stick_button || Math.abs(pos - hw.indexerMotor.getCurrentPosition()) <= 20
+            if (gamepad2.dpadDownWasPressed() || Math.abs(pos - hw.indexerMotor.getCurrentPosition()) <= 20
                     || Math.abs(pos - hw.indexerMotor.getCurrentPosition()) >= 200) {
                 hw.indexerMotor.setVelocity(0);
             }
@@ -179,8 +173,8 @@ public class FinalTeleOp extends OpMode {
             resetPosition(hw);
             isStepByStep = true;
         } if (gamepad2.left_trigger > 0.1) {
-            hw.outtakeMotorRight.setVelocity(0);
-            hw.outtakeMotorLeft.setVelocity(0);
+            hw.outtake(0);
+            resetPosition(hw);
             hw.indexerVelocity();
             isStepByStep = false;
         }
@@ -215,11 +209,11 @@ public class FinalTeleOp extends OpMode {
         panels.addData("velocity left", hw.outtakeMotorLeft.getVelocity());
         panels.addData("indexer speed", Math.abs(hw.indexerMotor.getVelocity()));
         panels.addData("indexer error", Math.abs(hw.indexerMotor.getCurrentPosition() - pos));
-        panels.update(telemetry);
+//        panels.update(telemetry);
     }
 
     private void resetPosition(Hardware hw) {
-        int closesPos = closestPosition(hw.indexerMotor.getCurrentPosition(), (int)Hardware.INDEXER_RESOLUTION);
+        int closesPos = closestPosition(0, (int)Hardware.INDEXER_RESOLUTION);
         if(!hw.indexerMotor.getMode().equals(DcMotor.RunMode.RUN_TO_POSITION)) hw.indexerRun();
         hw.indexerMotor.setTargetPosition(closesPos);
         hw.indexerMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
@@ -257,22 +251,60 @@ public class FinalTeleOp extends OpMode {
         // 1 : 2 up 1 down 1 up
         switch (position) {
             case 3:
-                indexerToOuttake(1);
-                indexerToIntake(1);
+                shootAndWait(3, () -> indexerToOuttake(1), 31);
+                break;
+            case 31:
+                shootAndWait(31, () -> indexerToIntake(1), 99);
                 break;
             case 2:
-                indexerToIntake(1);
-                indexerToOuttake(1);
-                indexerToIntake(1);
+                shootAndWait(2, () -> indexerToIntake(1), 21);
+                break;
+            case 21:
+                shootAndWait(21, () -> indexerToOuttake(1), 22);
+                break;
+            case 22:
+                shootAndWait(22, () -> indexerToIntake(1), 99);
                 break;
             case 1:
-                indexerToIntake(1);
-                indexerToIntake(1);
-                indexerToOuttake(1);
-                indexerToIntake(1);
+                shootAndWait(1, () -> indexerToIntake(1), 11);
+                break;
+            case 11:
+                shootAndWait(11, () -> indexerToIntake(1), 12);
+                break;
+            case 12:
+                shootAndWait(12, () -> indexerToOuttake(1), 13);
+                break;
+            case 13:
+                shootAndWait(13, () -> indexerToIntake(1), 99);
+                break;
+            case 99:  // designated base case
+                hw.indexerMotor.setVelocity(0);
                 break;
             default:
                 throw new IllegalArgumentException("Target position is not 1, 2, or 3");
+        }
+    }
+
+    private void shootAndWait(int initialCase, Runnable initialShot, int nextCase) {
+        if(!isSpinning) {
+            initialShot.run();
+            isSpinning = true;
+        }
+        if (gamepad2.dpadDownWasPressed() || Math.abs(pos - hw.indexerMotor.getCurrentPosition()) <= 20
+                || Math.abs(pos - hw.indexerMotor.getCurrentPosition()) >= 200) {
+            hw.indexerMotor.setVelocity(0);
+            isSpinning = false;
+            panels.addData("run", "moving on to " + nextCase + " from " + initialCase );
+            panels.update(telemetry);
+            shootFromPosition(nextCase); // 3_1 is like 3.1, the next step for position 3
+//            panels.addData("case", initialCase);
+//            panels.addData("next case", nextCase);
+//            panels.addData("pos", pos);
+//            panels.addData("curr", hw.indexerMotor.getCurrentPosition());
+        } else {
+            shootFromPosition(initialCase);
+//            panels.addData("run", "repeated");
+//            panels.update(telemetry);
         }
     }
 
@@ -309,9 +341,15 @@ public class FinalTeleOp extends OpMode {
         // purple to be read as green
         boolean isGreen = false;
         boolean isPurple = false;
+        double greenLowerH = 81;
+        double greenLowerS = .27;
+        double greenUpperH = 168.0;
         if(colorsHSV[0] > greenLowerH && colorsHSV[0] < greenUpperH && colorsHSV[1] > greenLowerS) {
             isGreen = true;
         }
+        double purpleLowerH = 175.0;
+        double purpleLowerS = .28;
+        double purpleUpperH = 250.0;
         if(colorsHSV[0] > purpleLowerH && colorsHSV[0] < purpleUpperH && colorsHSV[1] > purpleLowerS) {
             isPurple = true;
         }
@@ -327,13 +365,6 @@ public class FinalTeleOp extends OpMode {
         if(isGreen) return BALL_STATUS.GREEN;
         if(isPurple) return BALL_STATUS.PURPLE;
         return BALL_STATUS.NEITHER;
-    }
-
-    private int rotationsToNearestColor(BALL_STATUS color) {
-        if(positionThree.equals(color)) return 1;
-        if(positionOne.equals(color)) return 2;
-        if(positionTwo.equals(color)) return 3;
-        return 0;
     }
 
     private BALL_STATUS combinedColorDecision(BALL_STATUS sensorOneColor, BALL_STATUS sensorTwoColor) {

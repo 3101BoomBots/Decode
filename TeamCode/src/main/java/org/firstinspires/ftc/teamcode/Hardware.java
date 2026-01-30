@@ -21,7 +21,7 @@ import org.firstinspires.ftc.robotcore.external.navigation.Pose2D;
 @Configurable
 public class Hardware {
     private static Hardware self;
-    public final static double INDEXER_RESOLUTION = 537.7;
+    public final static double INDEXER_RESOLUTION = 751.8;
     private OpMode opMode;
     public GoBildaPinpointDriver pinpoint;
     public DcMotorEx frontLeft;
@@ -32,7 +32,7 @@ public class Hardware {
     public DcMotorEx outtakeMotorLeft;
     public DcMotorEx outtakeMotorRight;
     public DcMotorEx intakeMotor;
-    public static int indexerVelocity = 1500;
+    public static int indexerVelocity = 1450;
     public RevColorSensorV3 color1;
     public RevColorSensorV3 color2;
     public Limelight3A limelight;
@@ -200,7 +200,14 @@ public class Hardware {
 
     public int velocityIndexerDown() {
         int curr = indexerMotor.getCurrentPosition();
-        indexerMotor.setVelocity(-indexerVelocity);
+        indexerMotor.setVelocity(-indexerVelocity * 1.3);
+        return (int) (curr - 0.333 * INDEXER_RESOLUTION);
+    }
+
+    public int velocityIndexerDown(boolean extraHardFirstBall) {
+        int curr = indexerMotor.getCurrentPosition();
+        if (!extraHardFirstBall) indexerMotor.setVelocity(-indexerVelocity);
+        else indexerMotor.setVelocity(-indexerVelocity * 1.3);
         return (int) (curr - 0.333 * INDEXER_RESOLUTION);
     }
 

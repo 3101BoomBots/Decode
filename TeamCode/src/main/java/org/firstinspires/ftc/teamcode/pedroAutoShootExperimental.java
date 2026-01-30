@@ -19,7 +19,7 @@ import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 import java.util.List;
 
 
-@Autonomous(name = "pedroAutoMotifBlue")
+@Autonomous(name = "experimental shooter")
 public class pedroAutoShootExperimental extends OpMode {
     PathChain score1, leave;
     Follower follower;
