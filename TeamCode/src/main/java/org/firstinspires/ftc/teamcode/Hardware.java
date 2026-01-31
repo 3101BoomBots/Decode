@@ -1,6 +1,7 @@
 package org.firstinspires.ftc.teamcode;
 
 import com.bylazar.configurables.annotations.Configurable;
+import com.pedropathing.geometry.Pose;
 import com.qualcomm.hardware.gobilda.GoBildaPinpointDriver;
 import com.qualcomm.hardware.limelightvision.Limelight3A;
 import com.qualcomm.hardware.rev.RevColorSensorV3;
@@ -23,6 +24,7 @@ public class Hardware {
     private static Hardware self;
     public final static double INDEXER_RESOLUTION = 751.8;
     private OpMode opMode;
+    public static Pose startingPose = new Pose(0, 0, Math.toRadians(0));
     public GoBildaPinpointDriver pinpoint;
     public DcMotorEx frontLeft;
     public DcMotorEx frontRight;

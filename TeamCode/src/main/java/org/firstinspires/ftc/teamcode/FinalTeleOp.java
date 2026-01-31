@@ -32,7 +32,6 @@ public class FinalTeleOp extends OpMode {
     private Supplier<PathChain> pathChain;
     private Pose savedPosition = new Pose(45, 98);
     private Hardware hw;
-    int position;
     int pos = 0;
     boolean isSpinning = false;
     boolean isStepByStep = false;
@@ -46,7 +45,7 @@ public class FinalTeleOp extends OpMode {
     @Override
     public void init() {
         follower = Constants.createFollower(hardwareMap);
-        follower.setStartingPose(new Pose());
+        follower.setStartingPose(Hardware.startingPose);
         follower.update();
         hw = Hardware.getInstance(this);
         hw.pedroInit(hardwareMap);
@@ -152,13 +151,13 @@ public class FinalTeleOp extends OpMode {
             }
         } else {
             if (gamepad2.dpadRightWasPressed()) {
-                indexerToIntake(1);
+                indexerToIntake();
             }
             if (gamepad2.dpadLeftWasPressed()) { // down
-                indexerToOuttake(1);
+                indexerToOuttake();
             }
             if (gamepad2.dpadDownWasPressed() || Math.abs(pos - hw.indexerMotor.getCurrentPosition()) <= 20
-                    || Math.abs(pos - hw.indexerMotor.getCurrentPosition()) >= 200) {
+                    || Math.abs(pos - hw.indexerMotor.getCurrentPosition()) >= Hardware.INDEXER_RESOLUTION) {
                 hw.indexerMotor.setVelocity(0);
             }
         }
@@ -183,23 +182,16 @@ public class FinalTeleOp extends OpMode {
         ballColor = getColorInPositionOne(hw.color1, hw.color2);
         positionOne = ballColor;
 
-        if (gamepad1.dpadRightWasPressed()) {
-            indexerToOuttake(1);
-        }
-        if (gamepad1.dpadLeftWasPressed()) {
-            indexerToIntake(1);
-        }
-
         // auto color shooting ======
-        if (gamepad2.aWasPressed()) {
-            isStepByStep = true;
-            int greenPosition = searchBallColor(BALL_STATUS.GREEN);
-            if (greenPosition != 0) shootFromPosition(greenPosition);
-        } else if (gamepad2.xWasPressed()) {
-            isStepByStep = true;
-            int purplePosition = searchBallColor(BALL_STATUS.PURPLE);
-            if (purplePosition != 0) shootFromPosition(purplePosition);
-        }
+///        if (gamepad2.aWasPressed()) {
+//            isStepByStep = true;
+//            int greenPosition = searchBallColor(BALL_STATUS.GREEN);
+//            if (greenPosition != 0) shootFromPosition(greenPosition);
+//        } else if (gamepad2.xWasPressed()) {
+//            isStepByStep = true;
+//            int purplePosition = searchBallColor(BALL_STATUS.PURPLE);
+//            if (purplePosition != 0) shootFromPosition(purplePosition);
+//        }
 
         panels.addData("position one", positionOne);
         panels.addData("position two", positionTwo);
@@ -209,131 +201,126 @@ public class FinalTeleOp extends OpMode {
         panels.addData("velocity left", hw.outtakeMotorLeft.getVelocity());
         panels.addData("indexer speed", Math.abs(hw.indexerMotor.getVelocity()));
         panels.addData("indexer error", Math.abs(hw.indexerMotor.getCurrentPosition() - pos));
-//        panels.update(telemetry);
+        panels.update(telemetry);
     }
 
     private void resetPosition(Hardware hw) {
-        int closesPos = closestPosition(0, (int)Hardware.INDEXER_RESOLUTION);
+        int closestPos = closestPosition(hw.indexerMotor.getCurrentPosition(), (int)Hardware.INDEXER_RESOLUTION);
+        hw.indexerMotor.setTargetPosition(closestPos);
         if(!hw.indexerMotor.getMode().equals(DcMotor.RunMode.RUN_TO_POSITION)) hw.indexerRun();
-        hw.indexerMotor.setTargetPosition(closesPos);
-        hw.indexerMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        hw.indexerMotor.setPower(1);
+        while(hw.indexerMotor.isBusy()) {follower.update();}
+        hw.indexerMotor.setPower(0);
         hw.indexerVelocity();
     }
 
     private int closestPosition(int currPos, int indexerResolution) {
-        int[] positions = generatePositions(currPos);
+        int multiplier = currPos / indexerResolution;
+        int[] positions = generatePositions(multiplier);
         Integer[] differences = new Integer[]{
-                indexerResolution - (currPos - positions[0]),
-                indexerResolution - (currPos - positions[1]),
-                indexerResolution - (currPos - positions[2])};
+                Math.abs(currPos - positions[0]),
+                Math.abs(currPos - positions[1]),
+                Math.abs(currPos - positions[2])};
         List<Integer> differenceToPos = Arrays.asList(differences);
         int minDiff = Math.min(Math.min(differenceToPos.get(0), differenceToPos.get(1)), differenceToPos.get(2));
         int indexOfMin = differenceToPos.indexOf(minDiff);
-        position = indexOfMin;
         return positions[indexOfMin];
     }
 
-    private int[] generatePositions(int currPos) {
-        return new int[]{0 + currPos, (int) (0.333 * Hardware.INDEXER_RESOLUTION) + currPos, (int) (0.666 * Hardware.INDEXER_RESOLUTION) + currPos};
+    private int[] generatePositions(int multiplier) {
+        return new int[]{(int) (Hardware.INDEXER_RESOLUTION * multiplier),
+                (int) (0.333 * Hardware.INDEXER_RESOLUTION + multiplier * Hardware.INDEXER_RESOLUTION),
+                (int) (0.666 * Hardware.INDEXER_RESOLUTION + multiplier * Hardware.INDEXER_RESOLUTION)};
     }
 
+//    private int searchBallColor(BALL_STATUS color) {
+//        if(positionThree.equals(color)) return 3;
+//        if(positionTwo.equals(color)) return 2;
+//        if(positionOne.equals(color)) return 1;
+//        return 0;
+//    }
 
-    private int searchBallColor(BALL_STATUS color) {
-        if(positionThree.equals(color)) return 3;
-        if(positionTwo.equals(color)) return 2;
-        if(positionOne.equals(color)) return 1;
-        return 0;
-    }
-
-    private void shootFromPosition(int position) {
-        // 3 : 1 down 1 up
-        // 2 : 1 up 1 down 1 up
-        // 1 : 2 up 1 down 1 up
-        switch (position) {
-            case 3:
-                shootAndWait(3, () -> indexerToOuttake(1), 31);
-                break;
-            case 31:
-                shootAndWait(31, () -> indexerToIntake(1), 99);
-                break;
-            case 2:
-                shootAndWait(2, () -> indexerToIntake(1), 21);
-                break;
-            case 21:
-                shootAndWait(21, () -> indexerToOuttake(1), 22);
-                break;
-            case 22:
-                shootAndWait(22, () -> indexerToIntake(1), 99);
-                break;
-            case 1:
-                shootAndWait(1, () -> indexerToIntake(1), 11);
-                break;
-            case 11:
-                shootAndWait(11, () -> indexerToIntake(1), 12);
-                break;
-            case 12:
-                shootAndWait(12, () -> indexerToOuttake(1), 13);
-                break;
-            case 13:
-                shootAndWait(13, () -> indexerToIntake(1), 99);
-                break;
-            case 99:  // designated base case
-                hw.indexerMotor.setVelocity(0);
-                break;
-            default:
-                throw new IllegalArgumentException("Target position is not 1, 2, or 3");
-        }
-    }
-
-    private void shootAndWait(int initialCase, Runnable initialShot, int nextCase) {
-        if(!isSpinning) {
-            initialShot.run();
-            isSpinning = true;
-        }
-        if (gamepad2.dpadDownWasPressed() || Math.abs(pos - hw.indexerMotor.getCurrentPosition()) <= 20
-                || Math.abs(pos - hw.indexerMotor.getCurrentPosition()) >= 200) {
-            hw.indexerMotor.setVelocity(0);
-            isSpinning = false;
-            panels.addData("run", "moving on to " + nextCase + " from " + initialCase );
-            panels.update(telemetry);
-            shootFromPosition(nextCase); // 3_1 is like 3.1, the next step for position 3
-//            panels.addData("case", initialCase);
-//            panels.addData("next case", nextCase);
-//            panels.addData("pos", pos);
-//            panels.addData("curr", hw.indexerMotor.getCurrentPosition());
-        } else {
-            shootFromPosition(initialCase);
-//            panels.addData("run", "repeated");
+//    private void shootFromPosition(int position) {
+//        // 3 : 1 down 1 up
+//        // 2 : 1 up 1 down 1 up
+//        // 1 : 2 up 1 down 1 up
+//        switch (position) {
+//            case 3:
+//                shootAndWait(3, this::indexerToOuttake, 31);
+//                break;
+//            case 31:
+//                shootAndWait(31, this::indexerToIntake, 99);
+//                break;
+//            case 2:
+//                shootAndWait(2, this::indexerToIntake, 21);
+//                break;
+//            case 21:
+//                shootAndWait(21, this::indexerToOuttake, 22);
+//                break;
+//            case 22:
+//                shootAndWait(22, this::indexerToIntake, 99);
+//                break;
+//            case 1:
+//                shootAndWait(1, this::indexerToIntake, 11);
+//                break;
+//            case 11:
+//                shootAndWait(11, this::indexerToIntake, 12);
+//                break;
+//            case 12:
+//                shootAndWait(12, this::indexerToOuttake, 13);
+//                break;
+//            case 13:
+//                shootAndWait(13, this::indexerToIntake, 99);
+//                break;
+//            case 99:  // designated base case
+//                hw.indexerMotor.setVelocity(0);
+//                break;
+//            default:
+//                throw new IllegalArgumentException("Target position is not 1, 2, or 3");
+//        }
+//    }
+//
+//    private void shootAndWait(int initialCase, Runnable initialShot, int nextCase) {
+//        if(!isSpinning) {
+//            initialShot.run();
+//            isSpinning = true;
+//        }
+//        if (gamepad2.dpadDownWasPressed() || Math.abs(pos - hw.indexerMotor.getCurrentPosition()) <= 20
+//                || Math.abs(pos - hw.indexerMotor.getCurrentPosition()) >= 200) {
+//            hw.indexerMotor.setVelocity(0);
+//            isSpinning = false;
+//            panels.addData("run", "moving on to " + nextCase + " from " + initialCase );
 //            panels.update(telemetry);
-        }
-    }
+//            shootFromPosition(nextCase); // 3_1 is like 3.1, the next step for position 3
+////            panels.addData("case", initialCase);
+////            panels.addData("next case", nextCase);
+////            panels.addData("pos", pos);
+////            panels.addData("curr", hw.indexerMotor.getCurrentPosition());
+//        } else {
+//            shootFromPosition(initialCase);
+////            panels.addData("run", "repeated");
+////            panels.update(telemetry);
+//        }
+//    }
 
 
-    private void indexerToOuttake(int rotations) {
-        if (position != 0) position--;
-        else position = 2;
+    private void indexerToOuttake() {
         pos = hw.velocityIndexerDown();
         BALL_STATUS temp;
-        for(int i = 0; i < rotations; i++) {
-            temp = positionTwo;
-            positionTwo = positionThree;
-            positionThree = positionOne;
-            positionOne = temp;
-        }
+        temp = positionTwo;
+        positionTwo = positionThree;
+        positionThree = positionOne;
+        positionOne = temp;
         positionTwo = BALL_STATUS.NEITHER;  // position two neither because it gets launched
     }
 
-    private void indexerToIntake(int rotations) {
-        if(position != 2) position++;
-        else position = 0;
+    private void indexerToIntake() {
         pos = hw.velocityIndexerUp();
         BALL_STATUS temp;
-        for(int i = 0; i < rotations; i++) {
-            temp = positionThree;
-            positionThree = positionTwo;
-            positionTwo = positionOne;
-            positionOne = temp;
-        }
+        temp = positionThree;
+        positionThree = positionTwo;
+        positionTwo = positionOne;
+        positionOne = temp;
     }
 
     private BALL_STATUS checkBall(float[] colorsHSV) {

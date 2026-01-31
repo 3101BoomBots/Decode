@@ -41,7 +41,7 @@ public class pedroAutoMotifRed extends OpMode {
     private enum BALL_ORDER {GPP, PPG, PGP, NONE}
     BALL_STATUS targetOne, targetTwo, targetThree;
     BALL_STATUS[] targetColors;
-    boolean isSpinning = false;
+    boolean isFirst = false;
     int pos = 0;
     boolean useMotif = true;
     BALL_ORDER ballOrder;
@@ -146,8 +146,8 @@ public class pedroAutoMotifRed extends OpMode {
 
     @Override
     public void start() {
-        telemetry.setAutoClear(false);
-        panels.getWrapper().setAutoClear(false);
+//        telemetry.setAutoClear(false);
+//        panels.getWrapper().setAutoClear(false);
     }
 
     @Override
@@ -160,7 +160,7 @@ public class pedroAutoMotifRed extends OpMode {
                 state = 1;
                 break;
             case 98:  // debug case
-                hw.intakeMotor.setPower(1);
+//                hw.intakeMotor.setPower(1);
                 state = 1;
             case 1:
                 if(!follower.isBusy()) {
@@ -170,7 +170,7 @@ public class pedroAutoMotifRed extends OpMode {
                 }
                 break;
             case 2:
-                if (pathTimer.getElapsedTimeSeconds() > 3) {
+                if (pathTimer.getElapsedTimeSeconds() > 1.2) {
                     outtakeTimer.resetTimer();
 //                    int targetOnePos = searchBallColor(targetOne);
                     if(targetOne.equals(BALL_STATUS.PURPLE)) shootFromPosition(2);
@@ -181,7 +181,7 @@ public class pedroAutoMotifRed extends OpMode {
                 }
                 break;
             case 3:
-                if (pathTimer.getElapsedTimeSeconds() > 2) {
+                if (pathTimer.getElapsedTimeSeconds() > 0.8) {
                     outtakeTimer.resetTimer();
                     if(targetTwo.equals(BALL_STATUS.PURPLE)) shootFromPosition(2);
                     else shootFromPosition(1);
@@ -191,7 +191,7 @@ public class pedroAutoMotifRed extends OpMode {
                 }
                 break;
             case 4:
-                if (pathTimer.getElapsedTimeSeconds() > 2) {
+                if (pathTimer.getElapsedTimeSeconds() > 0.8) {
                     outtakeTimer.resetTimer();
                     if(ballOrder.equals(BALL_ORDER.PGP)) shootFromPosition(3);
                     else shootFromPosition(2);
@@ -201,29 +201,30 @@ public class pedroAutoMotifRed extends OpMode {
                 }
                 break;
             case 5:
-                if (pathTimer.getElapsedTimeSeconds() > 3) {
-                    hw.indexerMotor.setVelocity(400);
-                    follower.followPath(balls1, 0.6, true);
-                    pathTimer.resetTimer();
-                    resetPosition(hw);
-                    state = 51;
-                }
+//                if (pathTimer.getElapsedTimeSeconds() > 0.2) {
+                hw.indexerMotor.setVelocity(400);
+                follower.followPath(balls1, 0.6, true);
+                pathTimer.resetTimer();
+                resetPosition(hw);
+                state = 51;
+//                }
                 break;
             case 51:
-                if(pathTimer.getElapsedTimeSeconds() > 1) {
+                if(pathTimer.getElapsedTimeSeconds() > 0.5) {
                     hw.indexerMotor.setVelocity(0);
+                    pathTimer.resetTimer();
                     state = 52;
                 }
                 break;
             case 52:
-                if(pathTimer.getElapsedTimeSeconds() > 1.5) {
+                if(pathTimer.getElapsedTimeSeconds() > 0.3) {
                     hw.indexerMotor.setVelocity(400);
                     pathTimer.resetTimer();
                     state = 6;
                 }
                 break;
             case 6:
-                if (pathTimer.getElapsedTimeSeconds() > 0.5 && !follower.isBusy()) { // wait at end 1/2 second
+                if (pathTimer.getElapsedTimeSeconds() > 1  && !follower.isBusy()) { // wait at end 1/2 second
                     follower.followPath(return1, true);
 //                    Timer ballResetTimer = new Timer();
 //                    getBallsInPosition(ballResetTimer);
@@ -232,40 +233,52 @@ public class pedroAutoMotifRed extends OpMode {
                 }
                 break;
             case 7:
-                if (pathTimer.getElapsedTimeSeconds() > 3) {
+                if (!follower.isBusy()) {
                     outtakeTimer.resetTimer();
-                    if(targetOne.equals(BALL_STATUS.PURPLE)) shootFromPosition(2);
-                    else shootFromPosition(3);
+                    isFirst = true;
+                    shootFromPosition(2);
                     resetPosition(hw);
+                    isFirst = false;
                     pathTimer.resetTimer();
                     state = 8;
                 }
                 break;
             case 8:
-                if (pathTimer.getElapsedTimeSeconds() > 2) {
+                if (pathTimer.getElapsedTimeSeconds() > 0.7) {
                     outtakeTimer.resetTimer();
-                    if(targetTwo.equals(BALL_STATUS.PURPLE)) shootFromPosition(2);
-                    else shootFromPosition(1);
+                    shootFromPosition(2);
                     resetPosition(hw);
                     pathTimer.resetTimer();
                     state = 9;
                 }
                 break;
             case 9:
-                if (pathTimer.getElapsedTimeSeconds() > 2) {
+                if (pathTimer.getElapsedTimeSeconds() > 0.7) {
                     outtakeTimer.resetTimer();
-                    if(ballOrder.equals(BALL_ORDER.PGP)) shootFromPosition(1);
-                    else shootFromPosition(2);
+                    shootFromPosition(2);
+                    resetPosition(hw);
+                    pathTimer.resetTimer();
+                    state = 10;
+                }
+                break;
+            case 10:
+                if (pathTimer.getElapsedTimeSeconds() > 0.3) {
+                    outtakeTimer.resetTimer();
+                    shootFromPosition(2);
                     resetPosition(hw);
                     pathTimer.resetTimer();
                     state = 99;
                 }
                 break;
             case 99:
+                hw.intakeMotor.setPower(0);
+                hw.indexerMotor.setPower(0);
+                hw.outtake(0);
                 follower.followPath(leave);
                 state = 100;
                 break;
             }
+            Hardware.startingPose = follower.getPose();
 
 //        panels.addData("path state", state);
 //        panels.addData("path timer", pathTimer.getElapsedTimeSeconds());
@@ -281,9 +294,9 @@ public class pedroAutoMotifRed extends OpMode {
 
     private void resetPosition(Hardware hw) {
         int closestPos = closestPosition(hw.indexerMotor.getCurrentPosition(), (int)Hardware.INDEXER_RESOLUTION);
-        panels.addData("curr and pos and closest", " curr" + hw.indexerMotor.getCurrentPosition() +
-                " " + pos + " " + closestPos);
-        panels.update(telemetry);
+//        panels.addData("curr and pos and closest", " curr" + hw.indexerMotor.getCurrentPosition() +
+//                " " + pos + " " + closestPos);
+//        panels.update(telemetry);
         hw.indexerMotor.setTargetPosition(closestPos);
         if(!hw.indexerMotor.getMode().equals(DcMotor.RunMode.RUN_TO_POSITION)) hw.indexerRun();
         hw.indexerMotor.setPower(1);
@@ -293,7 +306,9 @@ public class pedroAutoMotifRed extends OpMode {
     }
 
     private int closestPosition(int currPos, int indexerResolution) {
-        int multiplier = indexerResolution / currPos;
+        int multiplier = currPos / indexerResolution;
+//        panels.addData("multiplier", multiplier);
+//        panels.update(telemetry);
         int[] positions = generatePositions(multiplier);
         Integer[] differences = new Integer[]{
                 Math.abs(currPos - positions[0]),
@@ -318,39 +333,39 @@ public class pedroAutoMotifRed extends OpMode {
         // 3 : 1 down 1 up
         // 2 : 1 up 1 down 1 up
         // 1 : 2 up 1 down
-        final double OUTTAKE_DELAY = 0.15;
+        final double OUTTAKE_DELAY = 0.1;
         switch (position) {
             case 3:
                 while(outtakeTimer.getElapsedTimeSeconds() < OUTTAKE_DELAY) {follower.update();}
-                shootAndWait(3, () -> indexerToOuttake(1, true), 31);
+                shootAndWait(3, () -> indexerToOuttake(true), 31);
                 break;
             case 31:
                 while(outtakeTimer.getElapsedTimeSeconds() < OUTTAKE_DELAY) {follower.update();}
-                shootAndWait(31, () -> indexerToIntake(1), 99);
+                shootAndWait(31, this::indexerToIntake, 99);
                 break;
             case 2:
                 while(outtakeTimer.getElapsedTimeSeconds() < OUTTAKE_DELAY) {follower.update();}
-                shootAndWait(2, () -> indexerToIntake(1), 21);
+                shootAndWait(2, this::indexerToIntake, 21);
                 break;
             case 21:
                 while(outtakeTimer.getElapsedTimeSeconds() < OUTTAKE_DELAY){follower.update();}
-                shootAndWait(21, () -> indexerToOuttake(1, false), 22);
+                shootAndWait(21, () -> indexerToOuttake(isFirst), 22);
                 break;
             case 22:
                 while(outtakeTimer.getElapsedTimeSeconds() < OUTTAKE_DELAY){follower.update();}
-                shootAndWait(22, () -> indexerToIntake(1), 99);
+                shootAndWait(22, this::indexerToIntake, 99);
                 break;
             case 1:
                 while(outtakeTimer.getElapsedTimeSeconds() < OUTTAKE_DELAY) {follower.update();}
-                shootAndWait(1, () -> indexerToIntake(1), 11);
+                shootAndWait(1, this::indexerToIntake, 11);
                 break;
             case 11:
                 while(outtakeTimer.getElapsedTimeSeconds() < OUTTAKE_DELAY){follower.update();}
-                shootAndWait(11, () -> indexerToIntake(1), 12);
+                shootAndWait(11, this::indexerToIntake, 12);
                 break;
             case 12:
                 while(outtakeTimer.getElapsedTimeSeconds() < OUTTAKE_DELAY){follower.update();}
-                shootAndWait(12, () -> indexerToOuttake(1, false), 99);
+                shootAndWait(12, () -> indexerToOuttake(false), 99);
                 break;
             case 99:  // designated base case
                 hw.indexerMotor.setVelocity(0);
@@ -369,39 +384,36 @@ public class pedroAutoMotifRed extends OpMode {
         while (!(Math.abs(pos - hw.indexerMotor.getCurrentPosition()) <= 20
                 || Math.abs(pos - hw.indexerMotor.getCurrentPosition()) >= Hardware.INDEXER_RESOLUTION)) {
             follower.update();
+
             panels.addData("pos", pos);
+            panels.addData("velocity", hw.indexerMotor.getVelocity());
             panels.addData("curr", hw.indexerMotor.getCurrentPosition());
             panels.update(telemetry);
         }
-        panels.addData("run", "moving from " + initialCase + " to " + nextCase);
-        panels.addData("second", positionTwo);
-        panels.update(telemetry);
+//        panels.addData("run", "moving from " + initialCase + " to " + nextCase);
+//        panels.addData("second", positionTwo);
+//        panels.update(telemetry);
 
         hw.indexerMotor.setVelocity(0);
         outtakeTimer.resetTimer();
         shootFromPosition(nextCase); // 3_1 is like 3.1, the next step for position 3
-
     }
 
 
-    private void indexerToOuttake(int rotations, boolean extraHardFirstBall) {
+    private void indexerToOuttake(boolean extraHardFirstBall) {
         pos = hw.velocityIndexerDown(extraHardFirstBall);
-        for(int i = 0; i < rotations; i++) {
-            positionThree = positionOne;
-            positionOne = positionTwo;
-            positionTwo = BALL_STATUS.NEITHER;  // position two neither because it gets launched
-        }
+        positionThree = positionOne;
+        positionOne = positionTwo;
+        positionTwo = BALL_STATUS.NEITHER;  // position two neither because it gets launched
     }
 
-    private void indexerToIntake(int rotations) {
+    private void indexerToIntake() {
         pos = hw.velocityIndexerUp();
         BALL_STATUS temp;
-        for(int i = 0; i < rotations; i++) {
-            temp = positionThree;
-            positionThree = positionTwo;
-            positionTwo = positionOne;
-            positionOne = temp;
-        }
+        temp = positionThree;
+        positionThree = positionTwo;
+        positionTwo = positionOne;
+        positionOne = temp;
     }
 
     private void getBallsInPosition(Timer timeoutTimer) {
