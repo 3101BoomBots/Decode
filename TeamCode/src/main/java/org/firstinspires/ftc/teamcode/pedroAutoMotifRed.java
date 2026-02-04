@@ -210,11 +210,19 @@ public class pedroAutoMotifRed extends OpMode {
 //                }
                 break;
             case 51:
-                if(pathTimer.getElapsedTimeSeconds() > 0.5) {
-                    hw.indexerMotor.setVelocity(0);
+                for(int i = 0; i < 6; i++) {
+                    while (pathTimer.getElapsedTimeSeconds() < 0.15) {
+                        hw.indexerMotor.setVelocity(400);
+                        follower.update();
+                    }
                     pathTimer.resetTimer();
-                    state = 52;
+                    while (pathTimer.getElapsedTimeSeconds() < 0.15) {
+                        hw.indexerMotor.setVelocity(0);
+                        follower.update();
+                    }
                 }
+                pathTimer.resetTimer();
+                state = 6;
                 break;
             case 52:
                 if(pathTimer.getElapsedTimeSeconds() > 0.3) {
@@ -381,7 +389,7 @@ public class pedroAutoMotifRed extends OpMode {
         outtakeTimer.resetTimer();
         initialShot.run();
 
-        while (!(Math.abs(pos - hw.indexerMotor.getCurrentPosition()) <= 20
+        while (!(Math.abs(pos - hw.indexerMotor.getCurrentPosition()) <= 55
                 || Math.abs(pos - hw.indexerMotor.getCurrentPosition()) >= Hardware.INDEXER_RESOLUTION)) {
             follower.update();
 

@@ -81,18 +81,18 @@ public class FinalTeleOp extends OpMode {
 
             //This is the normal version to use in the TeleOp
             if (!slowMode) follower.setTeleOpDrive(
-                    -gamepad1.left_stick_y,
-                    -gamepad1.left_stick_x,
+                    gamepad1.left_stick_y,
+                    gamepad1.left_stick_x,
                     -gamepad1.right_stick_x,
-                    false // Robot Centric
+                    true // Robot Centric
             );
 
             //This is how it looks with slowMode on
             else follower.setTeleOpDrive(
-                    -gamepad1.left_stick_y * slowModeMultiplier,
-                    -gamepad1.left_stick_x * slowModeMultiplier,
+                    gamepad1.left_stick_y * slowModeMultiplier,
+                    gamepad1.left_stick_x * slowModeMultiplier,
                     -gamepad1.right_stick_x * slowModeMultiplier,
-                    false // Robot Centric
+                    true // Robot Centric
             );
         }
 
@@ -156,7 +156,7 @@ public class FinalTeleOp extends OpMode {
             if (gamepad2.dpadLeftWasPressed()) { // down
                 indexerToOuttake();
             }
-            if (gamepad2.dpadDownWasPressed() || Math.abs(pos - hw.indexerMotor.getCurrentPosition()) <= 20
+            if (gamepad2.dpadDownWasPressed() || Math.abs(pos - hw.indexerMotor.getCurrentPosition()) <= 55
                     || Math.abs(pos - hw.indexerMotor.getCurrentPosition()) >= Hardware.INDEXER_RESOLUTION) {
                 hw.indexerMotor.setVelocity(0);
             }
@@ -193,13 +193,15 @@ public class FinalTeleOp extends OpMode {
 //            if (purplePosition != 0) shootFromPosition(purplePosition);
 //        }
 
-        panels.addData("position one", positionOne);
-        panels.addData("position two", positionTwo);
-        panels.addData("position three", positionThree);
+//        panels.addData("position one", positionOne);
+//        panels.addData("position two", positionTwo);
+//        panels.addData("position three", positionThree);
 
         panels.addData("velocity right", hw.outtakeMotorRight.getVelocity());
         panels.addData("velocity left", hw.outtakeMotorLeft.getVelocity());
         panels.addData("indexer speed", Math.abs(hw.indexerMotor.getVelocity()));
+        panels.addData("pos ", pos);
+        panels.addData("current ", hw.indexerMotor.getCurrentPosition());
         panels.addData("indexer error", Math.abs(hw.indexerMotor.getCurrentPosition() - pos));
         panels.update(telemetry);
     }
